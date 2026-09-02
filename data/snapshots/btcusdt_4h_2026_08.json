@@ -1,0 +1,10 @@
+{
+  "name": "btcusdt_4h_2026_08",
+  "rows": 2199,
+  "first_open_time": "2025-08-27 12:00:00+00:00",
+  "last_open_time": "2026-08-28 20:00:00+00:00",
+  "source": "binance_futures_rest",
+  "symbol": "BTCUSDT",
+  "timeframe": "4h",
+  "closed_candles_only": true
+}

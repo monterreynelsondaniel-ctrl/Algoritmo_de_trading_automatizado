@@ -1,0 +1,22 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+*.db
+*.log
+*.lock
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+.idea/
+.vscode/
+.DS_Store
+backtest_trades.csv
+
+# Freeze datasets intentionally: only the documented baseline is versioned.
+data/snapshots/*
+!data/snapshots/btcusdt_4h_2026_08.csv
+!data/snapshots/btcusdt_4h_2026_08.json
