@@ -1,0 +1,34 @@
+{
+  "experiment_id": "atr14_not_above_20bar_mean",
+  "snapshot": "btcusdt_4h_2026_08",
+  "rule": "allow entry when ATR(14) / mean(ATR(14), 20) <= 1.0",
+  "threshold_scanned": false,
+  "baseline_rules_modified": false,
+  "development_only": true,
+  "overall": {
+    "scope": "ALL",
+    "baseline_trades": 100,
+    "candidate_trades": 49,
+    "trade_retention_pct": 49.0,
+    "baseline_win_rate": 51.0,
+    "candidate_win_rate": 65.3061224489796,
+    "baseline_expectancy": -0.2509928072148069,
+    "candidate_expectancy": 0.817090538090039,
+    "baseline_profit_factor": 0.8303556086609178,
+    "candidate_profit_factor": 2.3835169771561957,
+    "baseline_sum_net": -25.099280721480685,
+    "candidate_sum_net": 40.03743636641191,
+    "baseline_avg_loss": -3.0194350356204347,
+    "candidate_avg_loss": -1.70228725383064,
+    "positive_pnl_retention_pct": 56.145392831889374
+  },
+  "acceptance": {
+    "expectancy_improved": true,
+    "profit_factor_improved": true,
+    "average_loss_improved": true,
+    "trade_retention_at_least_70_pct": false,
+    "positive_pnl_retention_at_least_70_pct": false,
+    "out_of_sample_validated": false,
+    "development_criteria_passed": false
+  }
+}

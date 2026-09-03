@@ -30,6 +30,9 @@ Los timestamps se expresan en UTC para compararlos sin ambigüedad.
 - La investigación cuantitativa reproducible del snapshot actual está en
   `docs/QUANTITATIVE_RESEARCH_BASELINE.md`. La baseline neta es -25.10 %, PF
   0.83 y 51 % de acierto; ninguna hipótesis exploratoria es aún una regla.
+- El primer experimento pre-registrado de contracción ATR mejoró métricas dentro
+  de muestra, pero fue rechazado por retener sólo 49 % de trades y 56 % del PnL
+  positivo. Véase `docs/EXPERIMENT_ATR_CONTRACTION.md`.
 - El cálculo de riesgo, persistencia, ejecución protegida, reconciliación y
   runner polling están implementados; la integración Testnet sigue pendiente.
 

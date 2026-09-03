@@ -98,3 +98,12 @@
   señal. MFE, MAE, trayectoria y duración se etiquetan como outcomes futuros.
 - Los hallazgos de `QUANTITATIVE_RESEARCH_BASELINE.md` son hipótesis, no cambios
   aprobados de estrategia. Cualquier filtro requiere validación no solapada.
+
+## 2026-09-03 — Resultado del experimento de contracción ATR
+
+- Se probó únicamente `ATR(14) / media ATR(14, 20) <= 1.0`; no hubo barrido de
+  parámetros y las salidas permanecieron sin cambios.
+- Aunque mejoró expectancy y profit factor dentro de muestra, retuvo sólo 49 %
+  de trades y 56.1 % del PnL positivo.
+- La regla exacta se rechaza según los criterios pre-registrados y no se integra
+  en la estrategia. Tampoco se considera validación fuera de muestra.
