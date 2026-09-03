@@ -27,9 +27,11 @@ Los timestamps se expresan en UTC para compararlos sin ambigüedad.
   histórico real aún no forma parte del snapshot.
 - El criterio 70/30 es provisional y no sustituye expectativa, drawdown o
   significancia estadística.
-- El cálculo de riesgo y la persistencia del ciclo están implementados, pero el
-  ejecutor, las órdenes protectoras y la reconciliación resolutiva siguen
-  pendientes.
+- La investigación cuantitativa reproducible del snapshot actual está en
+  `docs/QUANTITATIVE_RESEARCH_BASELINE.md`. La baseline neta es -25.10 %, PF
+  0.83 y 51 % de acierto; ninguna hipótesis exploratoria es aún una regla.
+- El cálculo de riesgo, persistencia, ejecución protegida, reconciliación y
+  runner polling están implementados; la integración Testnet sigue pendiente.
 
 ## Gestión de riesgo y persistencia — Fase 2
 

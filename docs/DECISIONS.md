@@ -87,3 +87,14 @@
 - La integración Testnet es opt-in, exige cuenta neutral y solo limpia recursos
   cuyos identificadores pertenecen a la prueba.
 - La limpieza es best effort: una caída externa puede requerir intervención.
+
+## 2026-09-03 — Protocolo de investigación cuantitativa
+
+- El snapshot `btcusdt_4h_2026_08` y las reglas actuales permanecen como
+  baseline inmutable durante el diagnóstico.
+- Winners y losers se clasifican por P&L neto; también se conserva el resultado
+  bruto para separar señal y fricciones.
+- Features candidatas usan solamente información disponible al cierre de la
+  señal. MFE, MAE, trayectoria y duración se etiquetan como outcomes futuros.
+- Los hallazgos de `QUANTITATIVE_RESEARCH_BASELINE.md` son hipótesis, no cambios
+  aprobados de estrategia. Cualquier filtro requiere validación no solapada.
