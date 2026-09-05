@@ -107,3 +107,14 @@
   de trades y 56.1 % del PnL positivo.
 - La regla exacta se rechaza según los criterios pre-registrados y no se integra
   en la estrategia. Tampoco se considera validación fuera de muestra.
+
+## 2026-09-05 — Dinámica ATR previa al reversal
+
+- Se analizaron cambios ATR(14) de 1, 2 y 3 velas sin buscar thresholds ni
+  modificar trades.
+- La expansión incrementó la frecuencia de pérdidas <-3 %, pero no deterioró
+  expectancy, PF, MAE y worst consistentemente en el conjunto.
+- LONG sí mostró deterioro direccional en las tres ventanas; SHORT no. Se
+  descarta cualquier regla ATR simétrica y no se integra filtro alguno.
+- Una eventual regla LONG requiere pre-registro y datos no solapados. Escoger la
+  mejor ventana retrospectivamente queda explícitamente prohibido.

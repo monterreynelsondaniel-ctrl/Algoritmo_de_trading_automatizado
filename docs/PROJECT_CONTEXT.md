@@ -33,6 +33,9 @@ Los timestamps se expresan en UTC para compararlos sin ambigüedad.
 - El primer experimento pre-registrado de contracción ATR mejoró métricas dentro
   de muestra, pero fue rechazado por retener sólo 49 % de trades y 56 % del PnL
   positivo. Véase `docs/EXPERIMENT_ATR_CONTRACTION.md`.
+- El análisis posterior de dinámica ATR descartó un filtro simétrico: la
+  expansión previa deteriora consistentemente LONG, pero no SHORT. Es una
+  hipótesis de desarrollo, no una regla ni validación fuera de muestra.
 - El cálculo de riesgo, persistencia, ejecución protegida, reconciliación y
   runner polling están implementados; la integración Testnet sigue pendiente.
 

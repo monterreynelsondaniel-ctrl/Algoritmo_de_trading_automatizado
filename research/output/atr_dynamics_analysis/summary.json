@@ -1,0 +1,17 @@
+{
+  "snapshot": "btcusdt_4h_2026_08",
+  "windows": [
+    1,
+    2,
+    3
+  ],
+  "strategy_modified": false,
+  "threshold_optimization": false,
+  "development_only": true,
+  "directional_checks": {
+    "worse_expectancy_in_every_side_window": false,
+    "worse_mae_in_every_side_window": false,
+    "higher_large_loss_rate_in_every_side_window": true,
+    "expectancy_effect_survives_removing_two_worst": false
+  }
+}
