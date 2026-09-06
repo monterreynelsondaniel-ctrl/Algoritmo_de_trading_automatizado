@@ -118,3 +118,15 @@
   descarta cualquier regla ATR simétrica y no se integra filtro alguno.
 - Una eventual regla LONG requiere pre-registro y datos no solapados. Escoger la
   mejor ventana retrospectivamente queda explícitamente prohibido.
+
+## 2026-09-06 — Experimento DMI/ADX
+
+- DMI/ADX(14) se calculó con Wilder RMA sobre OHLC real al cierre de la señal;
+  SQZMOM permaneció sobre Heikin-Ashi.
+- Los terciles ADX fueron exclusivamente descriptivos. No hubo búsqueda de
+  thresholds ni cambios a la estrategia.
+- ADX alto no produjo deterioro monotónico y counter+HIGH no concentró las
+  pérdidas grandes; la hipótesis general se rechaza.
+- La alineación DMI fue prometedora únicamente para SHORT y conservó dirección
+  entre mitades y al retirar hasta dos peores trades. Sigue siendo una hipótesis
+  in-sample, no una regla aprobada.

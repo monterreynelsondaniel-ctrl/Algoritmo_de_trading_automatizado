@@ -1,9 +1,9 @@
 # Próximos pasos
 
-1. Reservar un snapshot futuro no solapado antes de evaluar una regla de dinámica
-   ATR exclusiva para LONG; no escoger ventana por el mejor resultado histórico.
-2. Estudiar ADX como hipótesis independiente de fuerza de tendencia, sin
-   combinarlo aún con ATR u otros filtros.
+1. Reservar un snapshot futuro no solapado y pre-registrar un único experimento:
+   entradas SHORT sólo con alineación `-DI > +DI`, sin umbral ADX ni ATR.
+2. Mantener como hipótesis secundaria futura la dinámica ATR exclusiva para
+   LONG; no escoger ventana por el mejor resultado histórico.
 3. Pre-registrar después invalidación temprana sin seleccionar hora/umbral con
    el snapshot actual.
 4. Comparar valores SQZMOM vela por vela contra el Pine Script original.

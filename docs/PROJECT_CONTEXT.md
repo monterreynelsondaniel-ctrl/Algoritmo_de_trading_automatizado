@@ -36,6 +36,9 @@ Los timestamps se expresan en UTC para compararlos sin ambigüedad.
 - El análisis posterior de dinámica ATR descartó un filtro simétrico: la
   expansión previa deteriora consistentemente LONG, pero no SHORT. Es una
   hipótesis de desarrollo, no una regla ni validación fuera de muestra.
+- El experimento DMI/ADX rechazó la hipótesis general de que ADX alto empeora
+  reversals counter-trend. La alineación DMI sí fue prometedora sólo en SHORT;
+  permanece exploratoria y no se incorporó como filtro.
 - El cálculo de riesgo, persistencia, ejecución protegida, reconciliación y
   runner polling están implementados; la integración Testnet sigue pendiente.
 

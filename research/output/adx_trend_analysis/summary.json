@@ -1,0 +1,24 @@
+{
+  "experiment": "003_dmi_adx_trend_strength",
+  "classification": "EXPLORATORY_IN_SAMPLE",
+  "snapshot": "btcusdt_4h_2026_08",
+  "strategy_modified": false,
+  "adx_length": 14,
+  "adx_band_boundaries_descriptive_only": {
+    "lower_upper_bound": 19.755941598857024,
+    "middle_upper_bound": 27.835052914413073
+  },
+  "neutral_alignment_count": 0,
+  "unchanged_adx_count": 0,
+  "methodological_conclusion": "C: general hypothesis rejected; SHORT DMI alignment retained for future research",
+  "next_experiment_not_implemented": "On a non-overlapping snapshot, allow new SHORT entries only when minus_di > plus_di; keep all exits unchanged and do not combine with ADX strength or ATR",
+  "baseline": {
+    "total_trades": 100,
+    "win_rate": 51.0,
+    "total_pnl": -25.09928072148069,
+    "compounded_return": -30.0154016163695,
+    "profit_factor": 0.8303556086609178,
+    "long_pnl": -24.183932654295543,
+    "short_pnl": -0.9153480671851426
+  }
+}
