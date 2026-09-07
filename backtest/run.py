@@ -21,6 +21,10 @@ def prepare_candles(candles, strategy=None):
 
 def execute_backtest(candles, timeframe_hours=4, strategy=None, **engine_options):
     selected = strategy or get_strategy()
+    if not hasattr(selected, "prepare_candles"):
+        raise ValueError(
+            f"{selected.name} requires multi-timeframe data; use python -m backtest.strategy_2_run"
+        )
     prepared = selected.prepare_candles(candles)
     signals = selected.historical_signals(prepared)
     return run_signal_analysis(

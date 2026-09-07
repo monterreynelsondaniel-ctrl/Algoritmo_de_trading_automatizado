@@ -3,6 +3,7 @@ import json
 import unittest
 
 from backtest.engine import run_signal_analysis
+from backtest.run import execute_backtest
 from backtest.statistics import calculate_backtest_statistics
 from data.frozen_market_data import FrozenMarketDataStore
 from strategies.registry import get_strategy
@@ -70,9 +71,14 @@ class Strategy1RegressionTests(unittest.TestCase):
         for key in expected.keys() - {"total_trades"}:
             self.assertAlmostEqual(stats[key], expected[key], places=10, msg=key)
 
-    def test_registry_rejects_unknown_strategy(self):
+    def test_registry_exposes_strategy_2_without_changing_strategy_1(self):
+        self.assertEqual(get_strategy("strategy_2").name, "strategy_2")
         with self.assertRaisesRegex(ValueError, "Unknown strategy"):
-            get_strategy("strategy_2")
+            get_strategy("unknown")
+
+    def test_single_timeframe_runner_rejects_strategy_2_clearly(self):
+        with self.assertRaisesRegex(ValueError, "multi-timeframe"):
+            execute_backtest(self.candles, strategy=get_strategy("strategy_2"))
 
 
 if __name__ == "__main__":

@@ -1,9 +1,10 @@
 """Small explicit strategy registry; intentionally contains only Strategy 1."""
 
 from strategies.strategy_1 import Strategy1
+from strategies.strategy_2 import Strategy2
 
 
-_STRATEGIES = {"strategy_1": Strategy1}
+_STRATEGIES = {"strategy_1": Strategy1, "strategy_2": Strategy2}
 
 
 def available_strategies() -> tuple[str, ...]:
