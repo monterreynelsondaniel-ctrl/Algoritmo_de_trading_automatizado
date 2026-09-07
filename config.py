@@ -37,6 +37,14 @@ class Settings:
     breakeven_r_multiple: float = 1.5
     dry_run_equity_usdt: float = 1000.0
     log_level: str = "INFO"
+    openai_api_key: str = ""
+    ai_provider: str = "openai"
+    openai_model: str = "gpt-5.6-terra"
+    openai_reasoning_effort: str = "low"
+    ai_decision_mode: str = "replay"
+    ai_cache_path: str = "database/ai_decisions.db"
+    ai_max_attempts: int = 2
+    openai_timeout_seconds: float = 30.0
 
     @classmethod
     def from_env(cls, env: Optional[Mapping[str, str]] = None, env_file: Optional[str] = ".env") -> "Settings":
@@ -60,6 +68,14 @@ class Settings:
             breakeven_r_multiple=float(values.get("BREAKEVEN_R_MULTIPLE", "1.5")),
             dry_run_equity_usdt=float(values.get("DRY_RUN_EQUITY_USDT", "1000.0")),
             log_level=values.get("LOG_LEVEL", "INFO").strip().upper(),
+            openai_api_key=values.get("OPENAI_API_KEY", "").strip(),
+            ai_provider=values.get("AI_PROVIDER", "openai").strip().lower(),
+            openai_model=values.get("OPENAI_MODEL", "gpt-5.6-terra").strip(),
+            openai_reasoning_effort=values.get("OPENAI_REASONING_EFFORT", "low").strip().lower(),
+            ai_decision_mode=values.get("AI_DECISION_MODE", "replay").strip().lower(),
+            ai_cache_path=values.get("AI_CACHE_PATH", "database/ai_decisions.db").strip(),
+            ai_max_attempts=int(values.get("AI_MAX_ATTEMPTS", "2")),
+            openai_timeout_seconds=float(values.get("OPENAI_TIMEOUT_SECONDS", "30")),
         )
         settings.validate()
         return settings
@@ -81,6 +97,19 @@ class Settings:
             raise ConfigurationError("ATR and breakeven multipliers must be positive")
         if self.dry_run_equity_usdt <= 0:
             raise ConfigurationError("DRY_RUN_EQUITY_USDT must be positive")
+        if self.ai_decision_mode not in {"replay", "live"}:
+            raise ConfigurationError("AI_DECISION_MODE must be 'replay' or 'live'")
+        if self.ai_provider != "openai":
+            raise ConfigurationError("Only AI_PROVIDER=openai is currently supported")
+        if not self.openai_model or self.openai_reasoning_effort not in {
+            "none", "minimal", "low", "medium", "high", "xhigh", "max"
+        }:
+            raise ConfigurationError("OpenAI model/reasoning configuration is invalid")
+        if self.ai_max_attempts < 1 or not self.ai_cache_path or self.openai_timeout_seconds <= 0:
+            raise ConfigurationError("AI_MAX_ATTEMPTS and AI_CACHE_PATH are invalid")
+
+    def ai_live_ready(self) -> bool:
+        return self.ai_decision_mode == "live" and bool(self.openai_api_key)
 
     @property
     def api_key(self) -> str:
