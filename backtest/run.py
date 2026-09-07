@@ -10,18 +10,19 @@ from backtest.statistics import (
 )
 from data.frozen_market_data import FrozenMarketDataStore
 from exchange.market_data import get_candles
-from strategies.candles import add_heikin_ashi
-from strategies.indicators import calculate_indicators
-from strategies.signals import detect_historical_reversals
+from strategies.registry import available_strategies, get_strategy
 
 
-def prepare_candles(candles):
-    return calculate_indicators(add_heikin_ashi(candles))
+def prepare_candles(candles, strategy=None):
+    """Prepare candles with Strategy 1 by default for API compatibility."""
+    selected = strategy or get_strategy()
+    return selected.prepare_candles(candles)
 
 
-def execute_backtest(candles, timeframe_hours=4, **engine_options):
-    prepared = prepare_candles(candles)
-    signals = detect_historical_reversals(prepared)
+def execute_backtest(candles, timeframe_hours=4, strategy=None, **engine_options):
+    selected = strategy or get_strategy()
+    prepared = selected.prepare_candles(candles)
+    signals = selected.historical_signals(prepared)
     return run_signal_analysis(
         prepared, signals, timeframe_hours=timeframe_hours, **engine_options
     )
@@ -73,6 +74,10 @@ def main():
     parser.add_argument("--save-as", help="Freeze downloaded candles under this name")
     parser.add_argument("--symbol", default="BTCUSDT")
     parser.add_argument("--timeframe", default="4h")
+    parser.add_argument(
+        "--strategy", choices=available_strategies(), default="strategy_1",
+        help="Strategy implementation to evaluate",
+    )
     parser.add_argument("--timeframe-hours", type=float, default=4)
     parser.add_argument("--limit", type=int, default=2200)
     parser.add_argument("--commission-rate", type=float, default=0.0004)
@@ -104,6 +109,7 @@ def main():
     results = execute_backtest(
         candles,
         args.timeframe_hours,
+        strategy=get_strategy(args.strategy),
         commission_rate=args.commission_rate,
         slippage_rate=args.slippage_rate,
         funding_rate=args.funding_rate,

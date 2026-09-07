@@ -1,7 +1,6 @@
 import unittest
 from datetime import datetime, timezone
 from decimal import Decimal
-from unittest.mock import patch
 
 import pandas as pd
 from sqlalchemy import create_engine
@@ -57,18 +56,30 @@ class FakeReconciler:
         return ReconciliationResult(symbol, True, False, "NO_EXPOSURE")
 
 
+class AlwaysLongStrategy:
+    signal_origin = "TEST_SIGNAL"
+
+    def prepare_candles(self, candle_data):
+        prepared = candle_data.copy()
+        prepared["atr"] = 1.0
+        return prepared
+
+    def generate_signal(self, candle_data):
+        return {"signal": "LONG"}
+
+
 class RunnerTests(unittest.TestCase):
     def test_dry_run_processes_each_closed_candle_only_once(self):
         trades, states = services()
         executor = FakeExecutor()
         config = Settings(dry_run=True, trading_enabled=False)
         runner = PollingRunner(
-            candles, executor, FakeReconciler(), trades, states, config
+            candles, executor, FakeReconciler(), trades, states, config,
+            strategy=AlwaysLongStrategy(),
         )
 
-        with patch("run_testnet.generate_signal", return_value={"signal": "LONG"}):
-            first = runner.run_once()
-            second = runner.run_once()
+        first = runner.run_once()
+        second = runner.run_once()
 
         self.assertEqual(first.decision, "OPEN_PROTECTED")
         self.assertEqual(second.decision, "DUPLICATE_CANDLE")

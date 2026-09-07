@@ -5,7 +5,6 @@ import time
 from dataclasses import dataclass
 from decimal import Decimal
 
-from backtest.run import prepare_candles
 from config import Settings, settings
 from data.frozen_market_data import FrozenMarketDataStore
 from database.database import create_schema
@@ -19,7 +18,7 @@ from execution.safety import KillSwitch
 from logs.logger import get_logger, log_event
 from positions.manager import PositionManager
 from positions.reconciliation import PositionReconciler
-from strategies.signals import generate_signal
+from strategies.registry import available_strategies, get_strategy
 
 
 @dataclass(frozen=True)
@@ -34,6 +33,7 @@ class PollingRunner:
         self, candle_provider, executor: OrderExecutor,
         reconciler: PositionReconciler, trades: TradeService,
         states: StateService, config: Settings = settings, logger=None,
+        strategy=None,
     ):
         self.candle_provider = candle_provider
         self.executor = executor
@@ -42,15 +42,16 @@ class PollingRunner:
         self.states = states
         self.settings = config
         self.logger = logger or get_logger(level=config.log_level)
+        self.strategy = strategy or get_strategy()
 
     def run_once(self) -> CycleResult:
-        candles = prepare_candles(self.candle_provider())
+        candles = self.strategy.prepare_candles(self.candle_provider())
         if len(candles) < 2:
             raise RuntimeError("At least two closed candles are required")
 
         latest = candles.iloc[-1]
         candle_time = latest["open_time"]
-        signal = generate_signal(candles)["signal"]
+        signal = self.strategy.generate_signal(candles)["signal"]
         symbol = self.settings.symbol
 
         if not self.settings.dry_run:
@@ -93,7 +94,7 @@ class PollingRunner:
             )
             result = self.executor.execute_entry(EntryIntent(
                 symbol=symbol, side=signal, signal_timestamp=candle_time,
-                signal_origin="SQZMOM_REVERSAL_HEIKIN_ASHI",
+                signal_origin=self.strategy.signal_origin,
                 expected_price=expected_price,
                 atr_value=Decimal(str(atr)), equity_usdt=equity,
             ))
@@ -158,7 +159,7 @@ class PollingRunner:
         )
 
 
-def build_runner(config: Settings, candle_provider):
+def build_runner(config: Settings, candle_provider, strategy=None):
     create_schema()
     client = BinanceFuturesClient(config=config)
     trades = trade_service
@@ -170,7 +171,8 @@ def build_runner(config: Settings, candle_provider):
         client, manager, trades, reconciler, config, kill_switch=kill_switch
     )
     return PollingRunner(
-        candle_provider, executor, reconciler, trades, states, config
+        candle_provider, executor, reconciler, trades, states, config,
+        strategy=strategy,
     )
 
 
@@ -179,6 +181,10 @@ def main():
     parser.add_argument("--once", action="store_true", help="Run one polling cycle")
     parser.add_argument("--poll-seconds", type=float, default=60)
     parser.add_argument("--snapshot", help="Offline snapshot name; implies --once")
+    parser.add_argument(
+        "--strategy", choices=available_strategies(), default="strategy_1",
+        help="Strategy implementation to run",
+    )
     args = parser.parse_args()
 
     if args.snapshot:
@@ -190,7 +196,7 @@ def main():
         )
 
     with single_runner_lock():
-        runner = build_runner(settings, provider)
+        runner = build_runner(settings, provider, strategy=get_strategy(args.strategy))
         if args.once or args.snapshot:
             result = runner.run_once()
             print(
