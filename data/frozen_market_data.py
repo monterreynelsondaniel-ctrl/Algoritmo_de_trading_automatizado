@@ -3,10 +3,11 @@ from pathlib import Path
 
 import pandas as pd
 
+from exchange.market_data import REQUIRED_CANDLE_COLUMNS
 
-REQUIRED_COLUMNS = (
-    "open_time", "open", "high", "low", "close", "volume", "close_time"
-)
+
+# Compatibility alias; the canonical candle contract belongs to market data.
+REQUIRED_COLUMNS = REQUIRED_CANDLE_COLUMNS
 
 
 class FrozenMarketDataStore:
@@ -58,3 +59,35 @@ class FrozenMarketDataStore:
     def metadata(self, name):
         _, metadata_path = self._paths(name)
         return json.loads(metadata_path.read_text(encoding="utf-8"))
+
+    def save_bundle(self, name, symbol, snapshots, overwrite=False):
+        """Persist a small manifest that composes immutable single-TF snapshots."""
+        if not name or Path(name).name != name:
+            raise ValueError("Bundle name must be a simple file name")
+        path = self.root / f"{name}.bundle.json"
+        if path.exists() and not overwrite:
+            raise FileExistsError(f"Snapshot bundle already exists: {name}")
+        if not snapshots:
+            raise ValueError("At least one timeframe snapshot is required")
+        for timeframe, snapshot in snapshots.items():
+            metadata = self.metadata(snapshot)
+            if metadata.get("symbol", symbol).upper() != symbol.upper():
+                raise ValueError(f"Snapshot {snapshot} belongs to a different symbol")
+            declared = metadata.get("timeframe")
+            if declared and declared != timeframe:
+                raise ValueError(f"Snapshot {snapshot} timeframe mismatch")
+        self.root.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({
+            "name": name, "symbol": symbol.upper(), "snapshots": snapshots,
+        }, indent=2), encoding="utf-8")
+        return path
+
+    def load_bundle(self, name):
+        from exchange.multi_timeframe import MultiTimeframeMarketData
+
+        if not name or Path(name).name != name:
+            raise ValueError("Bundle name must be a simple file name")
+        path = self.root / f"{name}.bundle.json"
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        frames = {tf: self.load(snapshot) for tf, snapshot in payload["snapshots"].items()}
+        return MultiTimeframeMarketData(payload["symbol"], frames)

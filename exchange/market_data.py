@@ -9,6 +9,10 @@ CANDLE_COLUMNS = [
     "taker_buy_quote", "ignore"
 ]
 
+REQUIRED_CANDLE_COLUMNS = (
+    "open_time", "open", "high", "low", "close", "volume", "close_time"
+)
+
 
 def get_candles(symbol, timeframe, limit, client=None, closed_only=True):
     """Fetch chronological futures candles from Binance's REST API."""
