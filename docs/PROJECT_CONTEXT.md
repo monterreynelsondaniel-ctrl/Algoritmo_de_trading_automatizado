@@ -42,7 +42,17 @@ Los timestamps se expresan en UTC para compararlos sin ambigüedad.
 - El cálculo de riesgo, persistencia, ejecución protegida, reconciliación y
   runner polling están implementados; la integración Testnet sigue pendiente.
 - La estrategia histórica está encapsulada como `strategy_1`. Su baseline y
-  secuencia completa están protegidas mediante regresión. Strategy 2 no existe.
+  secuencia completa están protegidas mediante regresión.
+- Strategy 2 existe únicamente como arquitectura experimental: tendencia 1D,
+  setup 4H, confirmación posterior 1H, revisión AI de entrada y gestión 4H.
+  Aún no hay bundle histórico 1D/4H/1H, cache real ni resultados cuantitativos.
+- `exchange/multi_timeframe.py` impide exponer velas cuyo `close_time` aún no
+  ocurrió. Los snapshots simples se pueden componer mediante manifests bundle.
+- Las decisiones AI usan Responses API, JSON Schema estricto, validación local,
+  cache SQLite y auditoría. Replay es el default; un cache miss impide el
+  backtest Strategy 2 en lugar de aprobar silenciosamente.
+- El modelo research predeterminado es `gpt-5.6-terra`; Sol/Luna se seleccionan
+  por configuración para comparaciones que mantienen caches independientes.
 
 ## Gestión de riesgo y persistencia — Fase 2
 

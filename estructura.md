@@ -5,7 +5,15 @@
 ├── backtest
 │   ├── engine.py
 │   ├── run.py
+│   ├── strategy_2_engine.py
+│   ├── strategy_2_run.py
 │   └── statistics.py
+├── ai_decision
+│   ├── client.py
+│   ├── prompts.py
+│   ├── schemas.py
+│   ├── service.py
+│   └── store.py
 ├── config.py
 ├── data
 │   ├── frozen_market_data.py
@@ -25,6 +33,7 @@
 ├── exchange
 │   ├── binance_client.py
 │   ├── exceptions.py
+│   ├── multi_timeframe.py
 │   └── market_data.py
 ├── execution
 │   ├── order_executor.py
@@ -44,9 +53,14 @@
 │   ├── registry.py
 │   ├── signals.py
 │   ├── squeeze_strategy.py
-│   └── strategy_1
-│       ├── __init__.py
-│       ├── signals.py
+│   ├── strategy_1
+│   │   ├── __init__.py
+│   │   ├── signals.py
+│   │   └── strategy.py
+│   └── strategy_2
+│       ├── config.py
+│       ├── models.py
+│       ├── rules.py
 │       └── strategy.py
 ├── tests
 │   ├── test_backtest_fees.py

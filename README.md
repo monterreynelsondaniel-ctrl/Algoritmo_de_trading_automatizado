@@ -138,8 +138,21 @@ El historial consolidado hasta la Fase 1 está en
 `strategies/candles.py` y `strategies/indicators.py` son reutilizables. Las
 reglas de Strategy 1 están encapsuladas en `strategies/strategy_1/`. El backtest
 y el runner dependen del contrato mínimo de `strategies/base.py`, no de reglas
-SQZMOM concretas. Una futura Strategy 2 deberá implementar ese contrato y
-registrarse explícitamente; Strategy 2 todavía no existe.
+SQZMOM concretas.
+
+Strategy 2 existe como implementación **experimental**, todavía sin resultados
+ni autorización Testnet. Usa contexto causal 1D/4H/1H, una máquina de estados
+determinista y revisiones OpenAI obligatorias. Su backtest necesita un bundle
+multi-timeframe y decisiones ya cacheadas:
+
+```bash
+.venv/bin/python -m backtest.strategy_2_run --bundle NOMBRE_BUNDLE
+```
+
+El modo predeterminado es `replay`: si falta una decisión, el backtest falla y
+no simula aprobación. `--ai-live` permite crear decisiones nuevas y potencialmente
+pagadas sólo cuando `OPENAI_API_KEY` está configurada. La suite normal siempre
+usa clientes fake y no consume API. Véase `docs/STRATEGY_2_ARCHITECTURE.md`.
 
 ## Seguridad y Binance Futures
 

@@ -142,3 +142,27 @@
   `strategy_1` como default. El engine continúa agnóstico.
 - `strategies/signals.py` queda como fachada compatible temporal.
 - No se implementa Strategy 2 ni infraestructura multi-timeframe anticipada.
+
+## 2026-09-07 — Arquitectura experimental de Strategy 2
+
+- La infraestructura multi-timeframe es compartida y causal; Strategy 2 no
+  sincroniza datos por su cuenta y sólo recibe velas con `close_time < as_of`.
+- La baseline determinista v1 es: EMA10/EMA55 diaria alineada, reversal SQZMOM
+  4H y reversal SQZMOM 1H del mismo lado posterior al setup.
+- Heikin-Ashi/SQZMOM se comparten; EMA, ATR, DMI/ADX y Disparity viven también
+  en indicadores comunes y DMI/ADX de research consume esa única fórmula.
+- OpenAI actúa como gate APPROVE/REJECT y como revisión HOLD/EXIT; nunca controla
+  exchange, side, leverage, capital ni kill switch.
+- Entradas fallan cerradas. En backtest, un cache miss requerido aborta
+  explícitamente. Durante posición abierta, indisponibilidad AI se audita y no
+  elimina protecciones deterministas ni inventa HOLD/EXIT.
+- La configuración AI centraliza provider/model/reasoning/modo/cache/retries.
+  Los prompts y schemas tienen versión, por lo que cambios invalidan cache.
+- La asignación de capital Strategy 2 queda declarada en 1.0, distinta de
+  leverage y nocional. No se inventó stop técnico ni definición de progreso.
+- Strategy 2 permanece experimental, sin Testnet ni producción autorizados.
+- El modelo inicial de research es `gpt-5.6-terra`; Sol y Luna permanecen como
+  comparadores configurables. La selección no pertenece a Strategy 2.
+- El contrato temporal y la causalidad viven íntegramente en `exchange/`.
+  Se descartó un Protocol multi-timeframe sin consumidores dentro de
+  `strategies/` para evitar confundir contrato estratégico con sincronización.
