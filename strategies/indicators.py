@@ -2,6 +2,79 @@ import numpy as np
 import pandas as pd
 
 
+def wilder_rma(series, length=14):
+    """Wilder RMA with an SMA seed, without reading future observations."""
+    source = pd.Series(series, copy=False, dtype="float64")
+    result = pd.Series(np.nan, index=source.index, dtype="float64")
+    if length <= 0:
+        raise ValueError("length must be positive")
+    valid = source.dropna()
+    if len(valid) < length:
+        return result
+    seed_position = source.index.get_loc(valid.index[length - 1])
+    seed = source.iloc[:seed_position + 1].dropna().iloc[-length:].mean()
+    result.iloc[seed_position] = seed
+    previous = seed
+    for position in range(seed_position + 1, len(source)):
+        current = source.iloc[position]
+        if pd.isna(current):
+            continue
+        previous = (previous * (length - 1) + current) / length
+        result.iloc[position] = previous
+    return result
+
+
+def calculate_ema(df, length, source_column="close", output_column=None):
+    if length <= 0:
+        raise ValueError("length must be positive")
+    output_column = output_column or f"ema_{length}"
+    df[output_column] = df[source_column].ewm(
+        span=length, adjust=False, min_periods=length
+    ).mean()
+    return df
+
+
+def calculate_disparity(df, length=20, source_column="close", output_column=None):
+    """Percentage distance from a configurable simple moving average."""
+    if length <= 0:
+        raise ValueError("length must be positive")
+    output_column = output_column or f"disparity_{length}"
+    average = df[source_column].rolling(length).mean()
+    df[output_column] = (df[source_column] / average - 1.0) * 100.0
+    return df
+
+
+def calculate_dmi_adx(df, length=14, prefix=""):
+    """Standard causal DMI/ADX on real OHLC using Wilder smoothing."""
+    high = df["high"].astype(float)
+    low = df["low"].astype(float)
+    up_move = high.diff()
+    down_move = -low.diff()
+    plus_dm = pd.Series(
+        np.where((up_move > down_move) & (up_move > 0), up_move, 0.0),
+        index=df.index,
+    )
+    minus_dm = pd.Series(
+        np.where((down_move > up_move) & (down_move > 0), down_move, 0.0),
+        index=df.index,
+    )
+    plus_dm.iloc[0] = np.nan
+    minus_dm.iloc[0] = np.nan
+    true_range = calculate_true_range(df)
+    true_range.iloc[0] = np.nan
+    atr = wilder_rma(true_range, length)
+    plus_di = 100.0 * wilder_rma(plus_dm, length) / atr
+    minus_di = 100.0 * wilder_rma(minus_dm, length) / atr
+    denominator = (plus_di + minus_di).replace(0, np.nan)
+    dx = 100.0 * (plus_di - minus_di).abs() / denominator
+    df[f"{prefix}plus_di"] = plus_di
+    df[f"{prefix}minus_di"] = minus_di
+    df[f"{prefix}dmi_atr"] = atr
+    df[f"{prefix}dx"] = dx
+    df[f"{prefix}adx"] = wilder_rma(dx, length)
+    return df
+
+
 def linreg(series, length):
     """
     Reproduction of TradingView's linreg(source, length, 0)
@@ -107,14 +180,15 @@ def calculate_true_range(df, high_column="high", low_column="low", close_column=
 
 
 def calculate_atr(
-    df, length=14, high_column="high", low_column="low", close_column="close"
+    df, length=14, high_column="high", low_column="low", close_column="close",
+    output_column="atr",
 ):
     """TradingView-style ATR using Wilder's RMA on the selected candle source."""
     true_range = calculate_true_range(
         df, high_column=high_column, low_column=low_column,
         close_column=close_column,
     )
-    df["atr"] = true_range.ewm(
+    df[output_column] = true_range.ewm(
         alpha=1 / length, adjust=False, min_periods=length
     ).mean()
     return df

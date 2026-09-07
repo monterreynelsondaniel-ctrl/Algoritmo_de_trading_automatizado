@@ -12,59 +12,18 @@ import pandas as pd
 from backtest.run import execute_backtest
 from backtest.statistics import calculate_backtest_statistics
 from data.frozen_market_data import FrozenMarketDataStore
+from strategies.indicators import calculate_dmi_adx as add_dmi_adx
+from strategies.indicators import wilder_rma
 
 
 ADX_LENGTH = 14
 BANDS = ("LOW", "MID", "HIGH")
 
 
-def wilder_rma(values: pd.Series, length: int = ADX_LENGTH) -> pd.Series:
-    """TradingView-style Wilder RMA: SMA seed, then recursive smoothing."""
-    if length <= 0:
-        raise ValueError("length must be positive")
-    source = pd.Series(values, dtype=float)
-    result = pd.Series(np.nan, index=source.index, dtype=float)
-    valid = source.dropna()
-    if len(valid) < length:
-        return result
-    seed_position = source.index.get_loc(valid.index[length - 1])
-    seed_values = source.iloc[: seed_position + 1].dropna().iloc[-length:]
-    result.iloc[seed_position] = seed_values.mean()
-    previous = result.iloc[seed_position]
-    for position in range(seed_position + 1, len(source)):
-        current = source.iloc[position]
-        if pd.isna(current):
-            continue
-        previous = (previous * (length - 1) + current) / length
-        result.iloc[position] = previous
-    return result
-
-
 def calculate_dmi_adx(candles: pd.DataFrame, length: int = ADX_LENGTH) -> pd.DataFrame:
-    """Calculate standard directional movement and ADX from real OHLC."""
-    high, low, close = candles.high.astype(float), candles.low.astype(float), candles.close.astype(float)
-    up_move = high.diff()
-    down_move = -low.diff()
-    plus_dm = pd.Series(np.where((up_move > down_move) & (up_move > 0), up_move, 0.0), index=candles.index)
-    minus_dm = pd.Series(np.where((down_move > up_move) & (down_move > 0), down_move, 0.0), index=candles.index)
-    plus_dm.iloc[0] = np.nan
-    minus_dm.iloc[0] = np.nan
-    true_range = pd.concat([
-        high - low,
-        (high - close.shift(1)).abs(),
-        (low - close.shift(1)).abs(),
-    ], axis=1).max(axis=1)
-    true_range.iloc[0] = np.nan
-    atr = wilder_rma(true_range, length)
-    plus_di = 100 * wilder_rma(plus_dm, length) / atr
-    minus_di = 100 * wilder_rma(minus_dm, length) / atr
-    denominator = plus_di + minus_di
-    dx = 100 * (plus_di - minus_di).abs() / denominator.where(denominator != 0)
-    adx = wilder_rma(dx, length)
-    return pd.DataFrame({
-        "dmi_atr": atr, "plus_di": plus_di, "minus_di": minus_di,
-        "dx": dx, "adx": adx,
-    }, index=candles.index)
+    """Compatibility wrapper around the shared mathematical implementation."""
+    enriched = add_dmi_adx(candles.copy(), length)
+    return enriched[["dmi_atr", "plus_di", "minus_di", "dx", "adx"]]
 
 
 def classify_alignment(side: str, plus_di: float, minus_di: float) -> str:
