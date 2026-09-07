@@ -1,6 +1,7 @@
-# Trading Bot — SQZMOM Heikin Ashi
+# Trading Bot — arquitectura multi-estrategia
 
-Backtest inicial de una estrategia de reversión SQZMOM para futuros BTCUSDT.
+La estrategia histórica se denomina **Strategy 1**: reversión SQZMOM para
+futuros BTCUSDT.
 Las señales se calculan con velas Heikin Ashi y las órdenes se simulan en el
 `open` real de la vela posterior a la confirmación.
 
@@ -31,6 +32,13 @@ Repetir el backtest sin depender de Binance:
 
 ```bash
 .venv/bin/python -m backtest.run --snapshot btcusdt_4h_2026_08
+```
+
+Strategy 1 es el default. También puede seleccionarse explícitamente:
+
+```bash
+.venv/bin/python -m backtest.run \
+  --snapshot btcusdt_4h_2026_08 --strategy strategy_1
 ```
 
 El reporte muestra por defecto, para cada operación, la vela Heikin Ashi que
@@ -76,7 +84,8 @@ cp .env.example .env
 Validación completamente offline con el snapshot congelado:
 
 ```bash
-.venv/bin/python run_testnet.py --snapshot btcusdt_4h_2026_08
+.venv/bin/python run_testnet.py \
+  --snapshot btcusdt_4h_2026_08 --strategy strategy_1
 ```
 
 Un ciclo con datos públicos recientes, manteniendo simulación:
@@ -123,6 +132,14 @@ se sobrescriben salvo que se solicite explícitamente desde código.
 Consulta `docs/PROJECT_CONTEXT.md` y `docs/DECISIONS.md` antes de cambiar reglas.
 El historial consolidado hasta la Fase 1 está en
 `docs/PROGRESS_REPORT_2026-08-31.md`.
+
+## Estrategias
+
+`strategies/candles.py` y `strategies/indicators.py` son reutilizables. Las
+reglas de Strategy 1 están encapsuladas en `strategies/strategy_1/`. El backtest
+y el runner dependen del contrato mínimo de `strategies/base.py`, no de reglas
+SQZMOM concretas. Una futura Strategy 2 deberá implementar ese contrato y
+registrarse explícitamente; Strategy 2 todavía no existe.
 
 ## Seguridad y Binance Futures
 

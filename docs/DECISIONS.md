@@ -130,3 +130,15 @@
 - La alineación DMI fue prometedora únicamente para SHORT y conservó dirección
   entre mitades y al retirar hasta dos peores trades. Sigue siendo una hipótesis
   in-sample, no una regla aprobada.
+
+## 2026-09-06 — Encapsulación multi-estrategia
+
+- La estrategia histórica pasa a llamarse `strategy_1`; sus reglas y parámetros
+  quedan funcionalmente congelados.
+- Heikin-Ashi e indicadores permanecen compartidos en `strategies/candles.py` y
+  `strategies/indicators.py`; la interpretación de colores SQZMOM pertenece a
+  `strategies/strategy_1/signals.py`.
+- Backtest y runner consumen un contrato mínimo de estrategia y usan
+  `strategy_1` como default. El engine continúa agnóstico.
+- `strategies/signals.py` queda como fachada compatible temporal.
+- No se implementa Strategy 2 ni infraestructura multi-timeframe anticipada.

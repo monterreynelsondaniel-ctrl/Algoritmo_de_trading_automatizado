@@ -2,7 +2,7 @@
 
 ## Objetivo actual
 
-Validar una estrategia sencilla de reversión SQZMOM sobre futuros BTCUSDT en
+Validar Strategy 1, una estrategia sencilla de reversión SQZMOM sobre futuros BTCUSDT en
 temporalidad de cuatro horas. El criterio preliminar es alcanzar al menos 70 %
 de operaciones ganadoras en cada mes evaluado.
 
@@ -10,10 +10,10 @@ de operaciones ganadoras en cada mes evaluado.
 
 1. `exchange/market_data.py` obtiene velas cerradas desde Binance REST.
 2. `data/frozen_market_data.py` guarda y recupera snapshots reproducibles.
-3. `strategies/candles.py` deriva OHLC Heikin Ashi conservando OHLC real.
-4. `strategies/indicators.py` calcula SQZMOM con Heikin Ashi.
-5. `strategies/signals.py` detecta reversiones al cierre.
-6. `backtest/engine.py` ejecuta en el open real de la siguiente vela.
+3. `strategies/candles.py` y `strategies/indicators.py` proveen cálculos compartidos.
+4. `strategies/strategy_1/` prepara HA/SQZMOM e interpreta sus reversiones.
+5. `strategies/registry.py` entrega la estrategia seleccionada al consumidor.
+6. `backtest/engine.py` ejecuta señales genéricas en el open real siguiente.
 7. `backtest/statistics.py` informa métricas globales y mensuales.
 
 El reporte de auditoría distingue siempre `entry_signal_time`/`exit_signal_time`
@@ -41,6 +41,8 @@ Los timestamps se expresan en UTC para compararlos sin ambigüedad.
   permanece exploratoria y no se incorporó como filtro.
 - El cálculo de riesgo, persistencia, ejecución protegida, reconciliación y
   runner polling están implementados; la integración Testnet sigue pendiente.
+- La estrategia histórica está encapsulada como `strategy_1`. Su baseline y
+  secuencia completa están protegidas mediante regresión. Strategy 2 no existe.
 
 ## Gestión de riesgo y persistencia — Fase 2
 

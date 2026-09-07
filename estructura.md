@@ -36,11 +36,18 @@
 │   ├── manager.py
 │   └── reconciliation.py
 ├── strategies
+│   ├── __init__.py
+│   ├── base.py
 │   ├── candles.py
 │   ├── confidence.py
 │   ├── indicators.py
+│   ├── registry.py
 │   ├── signals.py
-│   └── squeeze_strategy.py
+│   ├── squeeze_strategy.py
+│   └── strategy_1
+│       ├── __init__.py
+│       ├── signals.py
+│       └── strategy.py
 ├── tests
 │   ├── test_backtest_fees.py
 │   ├── test_binance_client.py
