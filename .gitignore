@@ -20,3 +20,8 @@ backtest_trades.csv
 data/snapshots/*
 !data/snapshots/btcusdt_4h_2026_08.csv
 !data/snapshots/btcusdt_4h_2026_08.json
+!data/snapshots/btcusdt_1d_2026_08.csv
+!data/snapshots/btcusdt_1d_2026_08.json
+!data/snapshots/btcusdt_1h_2026_08.csv
+!data/snapshots/btcusdt_1h_2026_08.json
+!data/snapshots/btcusdt_1d_4h_1h_2026_08.bundle.json

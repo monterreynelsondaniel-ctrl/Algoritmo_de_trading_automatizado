@@ -1,0 +1,41 @@
+{
+  "bundle_version": 1,
+  "name": "btcusdt_1d_4h_1h_2026_08",
+  "symbol": "BTCUSDT",
+  "created_at": "2026-09-09T21:28:27.193764+00:00",
+  "snapshots": {
+    "1d": "btcusdt_1d_2026_08",
+    "4h": "btcusdt_4h_2026_08",
+    "1h": "btcusdt_1h_2026_08"
+  },
+  "data_ranges": {
+    "1d": {
+      "rows": 413,
+      "first_open_time": "2025-07-12T00:00:00+00:00",
+      "last_close_time": "2026-08-28T23:59:59.999000+00:00"
+    },
+    "4h": {
+      "rows": 2199,
+      "first_open_time": "2025-08-27T12:00:00+00:00",
+      "last_close_time": "2026-08-28T23:59:59.999000+00:00"
+    },
+    "1h": {
+      "rows": 8796,
+      "first_open_time": "2025-08-27T12:00:00+00:00",
+      "last_close_time": "2026-08-28T23:59:59.999000+00:00"
+    }
+  },
+  "purpose": "strategy_2_research",
+  "evaluation_start": "2025-09-05T16:00:00+00:00",
+  "evaluation_end": "2026-08-29T00:00:00+00:00",
+  "warmup": {
+    "dominant_indicator": "EMA55",
+    "required_observations": 55,
+    "4h_warmup_rows": 54,
+    "1d_data_start": "2025-07-12T00:00:00+00:00",
+    "1h_data_start": "2025-08-27T12:00:00+00:00"
+  },
+  "raw_ohlc_only": true,
+  "close_time_semantics": "last_included_millisecond",
+  "event_time_semantics": "close_time_plus_1ms"
+}
