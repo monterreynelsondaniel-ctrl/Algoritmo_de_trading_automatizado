@@ -1,8 +1,8 @@
 # Próximos pasos
 
-1. Aprobar el versionado explícito del bundle congelado BTCUSDT 1D/4H/1H ya
-   validado, manteniendo el allowlist estricto de snapshots.
-2. Ejecutar un lote AI pequeño y controlado para poblar cache; registrar modelo,
+1. Revisar y aprobar el presupuesto del preflight antes de habilitar cualquier
+   llamada live (`$2.50` y 100 intentos son los límites locales iniciales).
+2. Ejecutar un lote ENTRY AI pequeño y controlado para poblar cache; registrar modelo,
    prompts, schema, uso y costo, y luego reproducirlo completamente en replay.
 3. Analizar candidates aprobados/rechazados antes de definir stop técnico,
    progreso significativo o time stop. No inventar thresholds retrospectivos.

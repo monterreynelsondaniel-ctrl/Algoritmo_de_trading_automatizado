@@ -154,6 +154,18 @@ no simula aprobación. `--ai-live` permite crear decisiones nuevas y potencialme
 pagadas sólo cuando `OPENAI_API_KEY` está configurada. La suite normal siempre
 usa clientes fake y no consume API. Véase `docs/STRATEGY_2_ARCHITECTURE.md`.
 
+Antes de cualquier corrida live debe ejecutarse el preflight offline:
+
+```bash
+.venv/bin/python -m backtest.strategy_2_run \
+  --bundle btcusdt_1d_4h_1h_2026_08 --ai-preflight
+```
+
+El preflight cuenta candidatos, inspecciona cache, estima tokens/coste y muestra
+los límites locales sin construir un cliente OpenAI. Las corridas normales usan
+`--run-id` para reanudar una identidad compatible mediante replay causal + cache.
+Consulta `docs/STRATEGY_2_AI_PREFLIGHT.md` antes de habilitar `--ai-live`.
+
 ## Seguridad y Binance Futures
 
 La Fase 1 incorpora configuración fail-closed, logging sanitizado y el adaptador

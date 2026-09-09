@@ -53,9 +53,12 @@ Los timestamps se expresan en UTC para compararlos sin ambigüedad.
   backtest Strategy 2 en lugar de aprobar silenciosamente.
 - El modelo research predeterminado es `gpt-5.6-terra`; Sol/Luna se seleccionan
   por configuración para comparaciones que mantienen caches independientes.
-- El primer bundle Strategy 2, `btcusdt_1d_4h_1h_2026_08`, está preparado
-  localmente y documentado en `STRATEGY_2_FROZEN_DATASET.md`. Reutiliza el 4H
-  histórico intacto; su incorporación a Git espera aprobación del allowlist.
+- El primer bundle Strategy 2, `btcusdt_1d_4h_1h_2026_08`, está congelado y
+  documentado en `STRATEGY_2_FROZEN_DATASET.md`. Reutiliza el 4H histórico
+  intacto y sus componentes están versionados mediante allowlist explícito.
+- El preflight AI offline censó 81 candidatos potenciales (18 LONG/63 SHORT).
+  Las corridas AI tienen identidad, checkpoint causal, cache semántica y límites
+  locales; todavía no se hizo ninguna llamada pagada.
 
 ## Gestión de riesgo y persistencia — Fase 2
 

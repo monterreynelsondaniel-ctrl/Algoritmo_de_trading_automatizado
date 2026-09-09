@@ -166,3 +166,19 @@
 - El contrato temporal y la causalidad viven íntegramente en `exchange/`.
   Se descartó un Protocol multi-timeframe sin consumidores dentro de
   `strategies/` para evitar confundir contrato estratégico con sincronización.
+
+## 2026-09-09 — Preflight operativo para research AI
+
+- `replay` nunca llama al proveedor; un miss aborta. `live` consulta primero la
+  cache y sólo los misses pueden consumir presupuesto.
+- La identidad de corrida fija bundle/hash, estrategia, modelo, reasoning,
+  prompts, schemas y modo. Una reanudación incompatible se rechaza.
+- La reconstrucción elegida es causal desde el bundle usando cache, con
+  `last_processed_event` como checkpoint auditable; no se persiste una copia
+  redundante de toda la máquina de estados.
+- Cada intento live se registra `PENDING` antes de la llamada. Un timeout o corte
+  deja estado `UNKNOWN` y bloquea reintentos automáticos para evitar duplicados.
+- Los límites locales por coste y llamadas se reservan antes de cada intento;
+  los cache hits no consumen esos límites.
+- Los precios configurados corresponden a Terra al 2026-09-09 y deben verificarse
+  contra documentación oficial antes de cada experimento live.
