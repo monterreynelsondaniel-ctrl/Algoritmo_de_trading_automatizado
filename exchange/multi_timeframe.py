@@ -8,6 +8,36 @@ import pandas as pd
 from exchange.market_data import REQUIRED_CANDLE_COLUMNS
 
 
+def validate_candle_integrity(candles: pd.DataFrame, expected_interval) -> dict:
+    """Return deterministic integrity findings without repairing market data."""
+    missing = set(REQUIRED_CANDLE_COLUMNS) - set(candles.columns)
+    if missing:
+        raise ValueError(f"Missing candle columns: {sorted(missing)}")
+    frame = candles.copy()
+    for column in ("open_time", "close_time"):
+        frame[column] = pd.to_datetime(frame[column], utc=True)
+    ordered = bool(frame["open_time"].is_monotonic_increasing)
+    duplicates = int(frame["open_time"].duplicated().sum())
+    chronological = frame.sort_values("open_time").reset_index(drop=True)
+    interval = pd.Timedelta(expected_interval)
+    differences = chronological["open_time"].diff()
+    gap_rows = chronological.index[differences.notna() & differences.ne(interval)]
+    ohlc_invalid = (
+        (frame["high"] < frame["open"]) | (frame["high"] < frame["close"])
+        | (frame["low"] > frame["open"]) | (frame["low"] > frame["close"])
+        | (frame["high"] < frame["low"])
+    )
+    return {
+        "rows": len(frame),
+        "duplicates": duplicates,
+        "null_values": int(frame[list(REQUIRED_CANDLE_COLUMNS)].isna().sum().sum()),
+        "ordered": ordered,
+        "ohlc_violations": int(ohlc_invalid.sum()),
+        "gap_count": len(gap_rows),
+        "gap_open_times": [chronological.loc[index, "open_time"].isoformat() for index in gap_rows],
+    }
+
+
 def _normalize(candles: pd.DataFrame) -> pd.DataFrame:
     missing = set(REQUIRED_CANDLE_COLUMNS) - set(candles.columns)
     if missing:

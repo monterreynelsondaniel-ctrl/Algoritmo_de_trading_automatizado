@@ -14,7 +14,18 @@ REQUIRED_CANDLE_COLUMNS = (
 )
 
 
-def get_candles(symbol, timeframe, limit, client=None, closed_only=True):
+def _timestamp_ms(value):
+    if value is None:
+        return None
+    timestamp = pd.Timestamp(value)
+    timestamp = timestamp.tz_localize("UTC") if timestamp.tz is None else timestamp.tz_convert("UTC")
+    return int(timestamp.timestamp() * 1000)
+
+
+def get_candles(
+    symbol, timeframe, limit, client=None, closed_only=True,
+    start_time=None, end_time=None,
+):
     """Fetch chronological futures candles from Binance's REST API."""
 
     if limit <= 0:
@@ -28,7 +39,11 @@ def get_candles(symbol, timeframe, limit, client=None, closed_only=True):
 
     remaining = limit
 
-    end_time = None
+    start_ms = _timestamp_ms(start_time)
+    requested_end_ms = _timestamp_ms(end_time)
+    if start_ms is not None and requested_end_ms is not None and start_ms > requested_end_ms:
+        raise ValueError("start_time must not be after end_time")
+    cursor_end_time = requested_end_ms
 
     while remaining > 0:
 
@@ -40,8 +55,8 @@ def get_candles(symbol, timeframe, limit, client=None, closed_only=True):
             "limit": batch_size
         }
 
-        if end_time is not None:
-            params["endTime"] = end_time
+        if cursor_end_time is not None:
+            params["endTime"] = cursor_end_time
 
         candles = api_client.futures_klines(**params)
 
@@ -53,7 +68,7 @@ def get_candles(symbol, timeframe, limit, client=None, closed_only=True):
         remaining -= len(candles)
 
         # Move backwards in time
-        end_time = candles[0][0] - 1
+        cursor_end_time = candles[0][0] - 1
 
         # If Binance returned fewer candles than requested,
         # there may be no more historical data available.
@@ -73,11 +88,18 @@ def get_candles(symbol, timeframe, limit, client=None, closed_only=True):
 
     df = transform_candles(df)
 
+    if start_ms is not None:
+        start_timestamp = pd.to_datetime(start_ms, unit="ms", utc=True)
+        df = df[df["open_time"] >= start_timestamp]
+    if requested_end_ms is not None:
+        end_timestamp = pd.to_datetime(requested_end_ms, unit="ms", utc=True)
+        df = df[df["close_time"] <= end_timestamp]
+
     if closed_only and not df.empty:
         now = pd.Timestamp.now(tz="UTC")
         df = df[df["close_time"] < now].reset_index(drop=True)
 
-    return df
+    return df.reset_index(drop=True)
 
 
 def transform_candles(df):

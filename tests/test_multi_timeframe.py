@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from data.frozen_market_data import FrozenMarketDataStore
-from exchange.multi_timeframe import MultiTimeframeMarketData
+from exchange.multi_timeframe import MultiTimeframeMarketData, validate_candle_integrity
 
 
 def candles(frequency, periods=3):
@@ -18,6 +18,12 @@ def candles(frequency, periods=3):
 
 
 class MultiTimeframeTests(unittest.TestCase):
+    def test_integrity_report_detects_gaps_without_filling_them(self):
+        frame = candles("1h").drop(index=1).reset_index(drop=True)
+        report = validate_candle_integrity(frame, "1h")
+        self.assertEqual(report["gap_count"], 1)
+        self.assertEqual(report["rows"], 2)
+
     def test_view_never_exposes_unclosed_candle(self):
         frame = candles("1h")
         market = MultiTimeframeMarketData("BTCUSDT", {"1h": frame})

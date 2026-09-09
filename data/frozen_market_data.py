@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -60,7 +61,7 @@ class FrozenMarketDataStore:
         _, metadata_path = self._paths(name)
         return json.loads(metadata_path.read_text(encoding="utf-8"))
 
-    def save_bundle(self, name, symbol, snapshots, overwrite=False):
+    def save_bundle(self, name, symbol, snapshots, metadata=None, overwrite=False):
         """Persist a small manifest that composes immutable single-TF snapshots."""
         if not name or Path(name).name != name:
             raise ValueError("Bundle name must be a simple file name")
@@ -69,16 +70,29 @@ class FrozenMarketDataStore:
             raise FileExistsError(f"Snapshot bundle already exists: {name}")
         if not snapshots:
             raise ValueError("At least one timeframe snapshot is required")
+        ranges = {}
         for timeframe, snapshot in snapshots.items():
-            metadata = self.metadata(snapshot)
-            if metadata.get("symbol", symbol).upper() != symbol.upper():
+            snapshot_metadata = self.metadata(snapshot)
+            if snapshot_metadata.get("symbol", symbol).upper() != symbol.upper():
                 raise ValueError(f"Snapshot {snapshot} belongs to a different symbol")
-            declared = metadata.get("timeframe")
+            declared = snapshot_metadata.get("timeframe")
             if declared and declared != timeframe:
                 raise ValueError(f"Snapshot {snapshot} timeframe mismatch")
+            frame = self.load(snapshot)
+            ranges[timeframe] = {
+                "rows": len(frame),
+                "first_open_time": frame["open_time"].iloc[0].isoformat(),
+                "last_close_time": frame["close_time"].iloc[-1].isoformat(),
+            }
         self.root.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps({
-            "name": name, "symbol": symbol.upper(), "snapshots": snapshots,
+            "bundle_version": 1,
+            "name": name,
+            "symbol": symbol.upper(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "snapshots": snapshots,
+            "data_ranges": ranges,
+            **(metadata or {}),
         }, indent=2), encoding="utf-8")
         return path
 
