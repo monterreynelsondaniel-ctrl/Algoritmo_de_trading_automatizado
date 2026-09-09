@@ -2,7 +2,9 @@ import tempfile
 import unittest
 
 from ai_decision.schemas import DecisionSchemaError
-from ai_decision.service import AIDecisionUnavailableError, DecisionService
+from ai_decision.service import (
+    AIDecisionUnavailableError, AIRequestStateUnknownError, DecisionService,
+)
 from ai_decision.store import DecisionStore
 
 
@@ -47,13 +49,21 @@ class AIDecisionTests(unittest.TestCase):
             service.review_entry(entry_payload())
         self.assertIsInstance(raised.exception.__cause__, DecisionSchemaError)
 
-    def test_transient_failure_retries_boundedly(self):
+    def test_timeout_is_not_retried_when_response_state_is_unknown(self):
         client = FakeClient([TimeoutError(), {"decision": "REJECT", "side": "LONG",
                                               "confidence": .5, "reason_codes": [], "summary": "no"}])
         service = DecisionService(client, DecisionStore(":memory:"), model="test", mode="live",
                                   max_attempts=2, sleep=lambda _: None)
-        self.assertEqual(service.review_entry(entry_payload()).decision, "REJECT")
-        self.assertEqual(client.calls, 2)
+        with self.assertRaises(AIRequestStateUnknownError):
+            service.review_entry(entry_payload())
+        self.assertEqual(client.calls, 1)
+
+    def test_reasoning_effort_is_part_of_cache_identity(self):
+        store = DecisionStore(":memory:")
+        low = DecisionService(None, store, model="test", mode="replay", reasoning_effort="low")
+        medium = DecisionService(None, store, model="test", mode="replay", reasoning_effort="medium")
+        self.assertNotEqual(low.cache_key("ENTRY", entry_payload()),
+                            medium.cache_key("ENTRY", entry_payload()))
 
     def test_refusal_like_invalid_output_is_not_retried(self):
         client = FakeClient([ValueError("refusal")])

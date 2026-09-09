@@ -12,7 +12,8 @@ class OpenAIResponsesClient:
             raise RuntimeError("Install the 'openai' package to use live AI mode") from error
         self._client = OpenAI(api_key=api_key, timeout=timeout_seconds, max_retries=0)
 
-    def structured_response(self, *, model, system_prompt, payload, schema, reasoning_effort):
+    def structured_response(self, *, model, system_prompt, payload, schema, reasoning_effort,
+                            max_output_tokens):
         started = time.monotonic()
         response = self._client.responses.create(
             model=model,
@@ -20,6 +21,7 @@ class OpenAIResponsesClient:
             instructions=system_prompt,
             input=json.dumps(payload, sort_keys=True, separators=(",", ":")),
             text={"format": schema},
+            max_output_tokens=max_output_tokens,
             store=False,
         )
         if not response.output_text:

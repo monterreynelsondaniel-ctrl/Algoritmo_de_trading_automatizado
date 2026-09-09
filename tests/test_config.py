@@ -26,6 +26,11 @@ class SettingsTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             Settings.from_env(env={"DRY_RUN": "maybe"}, env_file=None)
 
+    def test_openai_key_is_excluded_from_settings_repr(self):
+        secret = "sensitive-test-value"
+        settings = Settings.from_env(env={"OPENAI_API_KEY": secret}, env_file=None)
+        self.assertNotIn(secret, repr(settings))
+
 
 if __name__ == "__main__":
     unittest.main()

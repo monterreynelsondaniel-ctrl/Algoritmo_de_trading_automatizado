@@ -1,5 +1,5 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Mapping, Optional
 
@@ -37,7 +37,7 @@ class Settings:
     breakeven_r_multiple: float = 1.5
     dry_run_equity_usdt: float = 1000.0
     log_level: str = "INFO"
-    openai_api_key: str = ""
+    openai_api_key: str = field(default="", repr=False)
     ai_provider: str = "openai"
     openai_model: str = "gpt-5.6-terra"
     openai_reasoning_effort: str = "low"
@@ -45,6 +45,11 @@ class Settings:
     ai_cache_path: str = "database/ai_decisions.db"
     ai_max_attempts: int = 2
     openai_timeout_seconds: float = 30.0
+    ai_max_run_cost_usd: float = 2.5
+    ai_max_live_calls_per_run: int = 100
+    ai_max_output_tokens_per_call: int = 2000
+    ai_input_cost_per_million_usd: float = 2.0
+    ai_output_cost_per_million_usd: float = 12.0
 
     @classmethod
     def from_env(cls, env: Optional[Mapping[str, str]] = None, env_file: Optional[str] = ".env") -> "Settings":
@@ -76,6 +81,15 @@ class Settings:
             ai_cache_path=values.get("AI_CACHE_PATH", "database/ai_decisions.db").strip(),
             ai_max_attempts=int(values.get("AI_MAX_ATTEMPTS", "2")),
             openai_timeout_seconds=float(values.get("OPENAI_TIMEOUT_SECONDS", "30")),
+            ai_max_run_cost_usd=float(values.get("AI_MAX_RUN_COST_USD", "2.5")),
+            ai_max_live_calls_per_run=int(values.get("AI_MAX_LIVE_CALLS_PER_RUN", "100")),
+            ai_max_output_tokens_per_call=int(values.get("AI_MAX_OUTPUT_TOKENS_PER_CALL", "2000")),
+            ai_input_cost_per_million_usd=float(
+                values.get("AI_INPUT_COST_PER_MILLION_USD", "2.0")
+            ),
+            ai_output_cost_per_million_usd=float(
+                values.get("AI_OUTPUT_COST_PER_MILLION_USD", "12.0")
+            ),
         )
         settings.validate()
         return settings
@@ -107,6 +121,12 @@ class Settings:
             raise ConfigurationError("OpenAI model/reasoning configuration is invalid")
         if self.ai_max_attempts < 1 or not self.ai_cache_path or self.openai_timeout_seconds <= 0:
             raise ConfigurationError("AI_MAX_ATTEMPTS and AI_CACHE_PATH are invalid")
+        if self.ai_max_run_cost_usd <= 0 or self.ai_max_live_calls_per_run < 1:
+            raise ConfigurationError("AI run cost and call limits must be positive")
+        if self.ai_max_output_tokens_per_call < 1:
+            raise ConfigurationError("AI_MAX_OUTPUT_TOKENS_PER_CALL must be positive")
+        if self.ai_input_cost_per_million_usd < 0 or self.ai_output_cost_per_million_usd < 0:
+            raise ConfigurationError("AI token prices cannot be negative")
 
     def ai_live_ready(self) -> bool:
         return self.ai_decision_mode == "live" and bool(self.openai_api_key)
