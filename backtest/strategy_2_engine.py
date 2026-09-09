@@ -5,6 +5,14 @@ from dataclasses import asdict, dataclass
 from ai_decision.service import AIDecisionUnavailableError
 
 
+def build_entry_request(strategy, candidate):
+    return {"strategy_version": strategy.config.version,
+            "candidate": {"id": candidate.candidate_id, "side": candidate.side,
+                          "setup_time": candidate.setup_time.isoformat(),
+                          "confirmation_time": candidate.confirmation_time.isoformat()},
+            "market_context": candidate.context}
+
+
 @dataclass(frozen=True)
 class Strategy2Trade:
     side: str
@@ -56,17 +64,17 @@ class Strategy2Backtester:
         hourly = market.full_frame(self.strategy.config.confirmation_timeframe)
         management = market.full_frame(self.strategy.config.management_timeframe)
         trades, audit, position = [], [], None
+        previous_event = None
         for event_time in market.event_times():
+            if self.ai.run_manager and previous_event is not None:
+                self.ai.run_manager.checkpoint(previous_event)
+            previous_event = event_time
             view = market.view_at(event_time)
             if position is None:
                 candidate = self.strategy.evaluate(view)
                 if candidate is None:
                     continue
-                request = {"strategy_version": self.strategy.config.version,
-                           "candidate": {"id": candidate.candidate_id, "side": candidate.side,
-                                         "setup_time": candidate.setup_time.isoformat(),
-                                         "confirmation_time": candidate.confirmation_time.isoformat()},
-                           "market_context": candidate.context}
+                request = build_entry_request(self.strategy, candidate)
                 try:
                     decision = self.ai.review_entry(request)
                 except AIDecisionUnavailableError as error:
@@ -126,4 +134,6 @@ class Strategy2Backtester:
                                          float(mfe), float(mae), self.strategy.state.bars_since_entry))
             self.strategy.reset()
             position = None
+        if self.ai.run_manager and previous_event is not None:
+            self.ai.run_manager.checkpoint(previous_event)
         return Strategy2BacktestResult(trades, audit, position)
