@@ -1,7 +1,7 @@
 # Próximos pasos
 
-1. Crear/congelar un bundle BTCUSDT 1D/4H/1H compatible, sin tocar el snapshot
-   Strategy 1, y revisar cobertura/rangos antes del primer backtest Strategy 2.
+1. Aprobar el versionado explícito del bundle congelado BTCUSDT 1D/4H/1H ya
+   validado, manteniendo el allowlist estricto de snapshots.
 2. Ejecutar un lote AI pequeño y controlado para poblar cache; registrar modelo,
    prompts, schema, uso y costo, y luego reproducirlo completamente en replay.
 3. Analizar candidates aprobados/rechazados antes de definir stop técnico,
