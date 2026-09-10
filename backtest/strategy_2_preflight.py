@@ -11,7 +11,7 @@ from ai_decision.prompts import ENTRY_SYSTEM_PROMPT, EXIT_SYSTEM_PROMPT
 from ai_decision.schemas import ENTRY_SCHEMA, EXIT_SCHEMA
 from ai_decision.service import DecisionService
 from ai_decision.budget import token_cost
-from backtest.strategy_2_engine import build_entry_request
+from backtest.strategy_2_candidates import enumerate_flat_entry_candidates
 from data.frozen_market_data import FrozenMarketDataStore
 from strategies.strategy_2 import Strategy2
 
@@ -63,26 +63,6 @@ def bundle_fingerprint(bundle_name, root="data/snapshots"):
     return digest.hexdigest()
 
 
-def _candidate_census(market):
-    strategy = Strategy2()
-    prepared = strategy.prepare_market_data(market)
-    candidates = []
-    for event_time in prepared.event_times():
-        candidate = strategy.evaluate(prepared.view_at(event_time))
-        if candidate is None:
-            continue
-        candidates.append(build_entry_request(strategy, candidate))
-        # Census semantics: remain flat without classifying the candidate as
-        # approved/rejected, while preventing the same closed bars from being
-        # rediscovered on the next event.
-        last_setup = strategy.state.last_setup_candle
-        last_confirmation = strategy.state.last_confirmation_candle
-        strategy.reset()
-        strategy.state.last_setup_candle = last_setup
-        strategy.state.last_confirmation_candle = last_confirmation
-    return prepared, candidates
-
-
 def _representative_exit_payload(entry):
     context = entry["market_context"]
     return {
@@ -100,7 +80,8 @@ def _representative_exit_payload(entry):
 
 def create_preflight_report(bundle_name, store, settings):
     market = FrozenMarketDataStore().load_bundle(bundle_name)
-    prepared, candidates = _candidate_census(market)
+    prepared, envelopes = enumerate_flat_entry_candidates(market)
+    candidates = [item.payload for item in envelopes]
     if not candidates:
         raise RuntimeError("Strategy 2 produced no deterministic candidates")
     service = DecisionService(None, store, model=settings.openai_model,
