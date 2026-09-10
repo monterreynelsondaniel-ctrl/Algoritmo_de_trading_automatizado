@@ -42,6 +42,17 @@ class AIRunSafetyTests(unittest.TestCase):
         with self.assertRaises(AIRunConfigurationMismatchError):
             AIRunManager(self.store, identity("gpt-5.6-sol"), "run-1").start()
 
+    def test_entry_collection_and_full_backtest_are_distinct_runs(self):
+        manager = AIRunManager(self.store, identity(), "run-1")
+        manager.start()
+        manager.interrupt()
+        collection = AIRunIdentity(
+            "strategy_2_v1", "bundle", "hash", "openai", "gpt-5.6-terra", "low",
+            "entry-v1", "exit-v1", "1.0.0", "live", "entry_collection",
+        )
+        with self.assertRaises(AIRunConfigurationMismatchError):
+            AIRunManager(self.store, collection, "run-1").start()
+
     def test_checkpoint_and_interrupted_state_are_persisted(self):
         manager = AIRunManager(self.store, identity(), "run-1")
         manager.start()

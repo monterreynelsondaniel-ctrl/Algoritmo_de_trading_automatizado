@@ -87,6 +87,13 @@ class DecisionStore:
         with self._connect() as connection:
             return connection.execute("SELECT COUNT(*) FROM ai_decision_cache").fetchone()[0]
 
+    def pending_status(self, cache_key):
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT status FROM ai_pending_requests WHERE cache_key=?", (cache_key,)
+            ).fetchone()
+        return None if row is None else row[0]
+
     def mark_pending(self, cache_key, run_id, decision_type, attempt, detail=None):
         now = datetime.now(timezone.utc).isoformat()
         with self._connect() as connection:

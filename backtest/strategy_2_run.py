@@ -11,6 +11,7 @@ from ai_decision.prompts import ENTRY_PROMPT_VERSION, EXIT_PROMPT_VERSION
 from ai_decision.runs import AIRunIdentity, AIRunManager
 from ai_decision.schemas import SCHEMA_VERSION
 from backtest.strategy_2_engine import Strategy2Backtester
+from backtest.strategy_2_entry_collector import Strategy2EntryCollector
 from backtest.strategy_2_preflight import bundle_fingerprint, create_preflight_report
 from config import settings
 from data.frozen_market_data import FrozenMarketDataStore
@@ -23,12 +24,19 @@ def main():
     parser.add_argument("--ai-cache", default=settings.ai_cache_path)
     parser.add_argument("--ai-live", action="store_true",
                         help="Allow new paid OpenAI requests; default is cache-only replay")
-    parser.add_argument("--ai-preflight", action="store_true",
-                        help="Offline workload/cost preview; never calls OpenAI")
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--ai-preflight", action="store_true",
+                       help="Offline workload/cost preview; never calls OpenAI")
+    modes.add_argument("--ai-entry-collect", action="store_true",
+                       help="Collect ENTRY decisions only; never opens positions or reviews EXIT")
     parser.add_argument("--run-id", help="Resume an existing compatible run")
+    parser.add_argument("--collection-output-dir",
+                        default="research/output/strategy_2_entry_collection")
     args = parser.parse_args()
     store = DecisionStore(args.ai_cache)
     if args.ai_preflight:
+        if args.ai_live:
+            parser.error("--ai-preflight cannot be combined with --ai-live")
         report = create_preflight_report(args.bundle, store, settings).as_dict()
         report["mode"] = "preflight_offline"
         report["prompt_versions"] = {"entry": ENTRY_PROMPT_VERSION, "exit": EXIT_PROMPT_VERSION}
@@ -52,6 +60,7 @@ def main():
         model=settings.openai_model, reasoning_effort=settings.openai_reasoning_effort,
         entry_prompt_version=ENTRY_PROMPT_VERSION, exit_prompt_version=EXIT_PROMPT_VERSION,
         schema_version=SCHEMA_VERSION, ai_mode=mode,
+        run_type="entry_collection" if args.ai_entry_collect else "full_backtest",
     )
     run_manager = AIRunManager(store, identity, args.run_id)
     run_manager.start()
@@ -68,15 +77,34 @@ def main():
                          max_attempts=settings.ai_max_attempts, budget=budget,
                          run_manager=run_manager,
                          max_output_tokens=settings.ai_max_output_tokens_per_call)
+    def progress(record, total, counters):
+        print(
+            f"ENTRY collection {record['candidate_index']}/{total} | {record['side']} | "
+            f"{record['evaluation_time']} | cache={'hit' if record['cache_hit'] else 'miss'} | "
+            f"AI={record['ai_status']} | live_calls={counters['live_calls']} | "
+            f"estimated_cost=${counters['estimated_cost_usd']:.6f}"
+        )
+
     try:
-        result = Strategy2Backtester(Strategy2(), ai).run(market).as_dict()
+        if args.ai_entry_collect:
+            collected = Strategy2EntryCollector(
+                Strategy2(), ai, store, run_manager,
+                output_dir=args.collection_output_dir, progress=progress,
+            ).run(market)
+            result = collected.summary()
+            if collected.completed:
+                run_manager.complete()
+            else:
+                run_manager.interrupt({"reason": collected.stop_reason})
+        else:
+            result = Strategy2Backtester(Strategy2(), ai).run(market).as_dict()
+            run_manager.complete()
     except KeyboardInterrupt:
         run_manager.interrupt({"error_type": "KeyboardInterrupt"})
         raise
     except Exception as error:
         run_manager.fail({"error_type": type(error).__name__})
         raise
-    run_manager.complete()
     result["run"] = run_manager.record()
     result["reproducibility"] = {
         "bundle": args.bundle, "strategy_version": Strategy2().config.version,

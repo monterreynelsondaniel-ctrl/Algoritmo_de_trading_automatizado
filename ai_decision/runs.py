@@ -22,6 +22,7 @@ class AIRunIdentity:
     exit_prompt_version: str
     schema_version: str
     ai_mode: str
+    run_type: str = "full_backtest"
 
     def canonical_json(self):
         return json.dumps(asdict(self), sort_keys=True, separators=(",", ":"))
