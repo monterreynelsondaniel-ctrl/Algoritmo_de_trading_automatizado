@@ -6,14 +6,19 @@
 │   ├── engine.py
 │   ├── run.py
 │   ├── strategy_2_engine.py
+│   ├── strategy_2_candidates.py
+│   ├── strategy_2_entry_collector.py
+│   ├── strategy_2_preflight.py
 │   ├── strategy_2_run.py
 │   └── statistics.py
 ├── ai_decision
 │   ├── client.py
+│   ├── budget.py
 │   ├── prompts.py
 │   ├── schemas.py
 │   ├── service.py
-│   └── store.py
+│   ├── store.py
+│   └── runs.py
 ├── config.py
 ├── data
 │   ├── frozen_market_data.py
@@ -27,6 +32,8 @@
 ├── docs
 │   ├── DECISIONS.md
 │   ├── NEXT_STEPS.md
+│   ├── STRATEGY_2_AI_PREFLIGHT.md
+│   ├── STRATEGY_2_ENTRY_COLLECTION.md
 │   ├── PHASE_2_REPORT.md
 │   ├── PROGRESS_REPORT_2026-08-31.md
 │   └── PROJECT_CONTEXT.md
@@ -75,6 +82,7 @@
 │   ├── test_reconciliation.py
 │   ├── test_runner.py
 │   ├── test_statistics.py
+│   ├── test_strategy_2_entry_collector.py
 │   └── test_trade_service.py
 ├── .env.example
 ├── run_testnet.py

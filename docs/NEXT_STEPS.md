@@ -2,8 +2,9 @@
 
 1. Revisar y aprobar el presupuesto del preflight antes de habilitar cualquier
    llamada live (`$2.50` y 100 intentos son los límites locales iniciales).
-2. Ejecutar un lote ENTRY AI pequeño y controlado para poblar cache; registrar modelo,
-   prompts, schema, uso y costo, y luego reproducirlo completamente en replay.
+2. Aprobar y ejecutar posteriormente el collector ENTRY en live para poblar las
+   81 decisiones cacheadas; registrar modelo, prompts, schema, uso y coste, y
+   reproducir después el mismo run en replay.
 3. Analizar candidates aprobados/rechazados antes de definir stop técnico,
    progreso significativo o time stop. No inventar thresholds retrospectivos.
 4. Reservar un snapshot futuro no solapado y pre-registrar un único experimento:

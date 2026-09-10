@@ -95,3 +95,7 @@ duplicar cobro sobre continuidad automática.
 
 Muestra bundle/hash, configuración, candidatos, cache, tokens, costes, límites
 y estado opcional de `--run-id`. No instancia el cliente OpenAI.
+
+Este modo sólo estima. La recolección real de decisiones ENTRY se realiza con
+`--ai-entry-collect`; el backtest path-dependent sigue siendo el modo sin flags.
+Consulta `STRATEGY_2_ENTRY_COLLECTION.md` para las fronteras exactas.

@@ -182,3 +182,16 @@
   los cache hits no consumen esos límites.
 - Los precios configurados corresponden a Terra al 2026-09-09 y deben verificarse
   contra documentación oficial antes de cada experimento live.
+
+## 2026-09-10 — Collector ENTRY independiente
+
+- Preflight, ENTRY collection y full backtest son modos mutuamente distinguibles.
+- El collector reutiliza el recorrido causal flat del censo y el payload ENTRY
+  del backtest. No importa ni llama ninguna operación de posición o EXIT.
+- Una aprobación se registra como dato, pero no altera el estado de portfolio.
+- Los misses de replay se registran como `MISSING` y no abortan el censo; el full
+  backtest mantiene su semántica fail-closed original.
+- `run_type=entry_collection` separa la identidad de corrida, mientras la cache
+  de decisión permanece compartida para que el full backtest pueda reutilizarla.
+- El dataset del collector contiene sólo información disponible al candidate;
+  quedan prohibidos PnL, MFE/MAE y cualquier outcome futuro.

@@ -59,6 +59,9 @@ Los timestamps se expresan en UTC para compararlos sin ambigüedad.
 - El preflight AI offline censó 81 candidatos potenciales (18 LONG/63 SHORT).
   Las corridas AI tienen identidad, checkpoint causal, cache semántica y límites
   locales; todavía no se hizo ninguna llamada pagada.
+- El collector ENTRY recorre esos candidatos como observaciones independientes,
+  permanece siempre flat y produce un dataset pre-outcome. Sus decisiones usan
+  el mismo payload/key que el full backtest; el modo live aún no fue ejecutado.
 
 ## Gestión de riesgo y persistencia — Fase 2
 

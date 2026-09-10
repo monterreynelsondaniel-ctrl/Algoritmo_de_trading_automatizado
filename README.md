@@ -166,6 +166,19 @@ los límites locales sin construir un cliente OpenAI. Las corridas normales usan
 `--run-id` para reanudar una identidad compatible mediante replay causal + cache.
 Consulta `docs/STRATEGY_2_AI_PREFLIGHT.md` antes de habilitar `--ai-live`.
 
+El collector ENTRY es un experimento separado del backtest completo:
+
+```bash
+.venv/bin/python -m backtest.strategy_2_run \
+  --bundle btcusdt_1d_4h_1h_2026_08 \
+  --ai-entry-collect
+```
+
+En replay recorre todos los candidatos, recupera decisiones cacheadas y marca
+los misses como `MISSING` sin abortar. Con `--ai-live` puede poblar exactamente
+la misma cache ENTRY que usa el backtest, pero nunca abre posiciones, calcula
+PnL ni invoca EXIT REVIEW. Véase `docs/STRATEGY_2_ENTRY_COLLECTION.md`.
+
 ## Seguridad y Binance Futures
 
 La Fase 1 incorpora configuración fail-closed, logging sanitizado y el adaptador
