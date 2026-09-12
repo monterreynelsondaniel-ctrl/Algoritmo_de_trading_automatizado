@@ -1,0 +1,161 @@
+{
+  "ai_input_sequence_fingerprint": "6115bd906cf50d587e72310ac0985e186d59381c6ac15c87464ed1902c282ccd",
+  "approval_rates": {
+    "long": 0.0,
+    "overall": 0.09876543209876543,
+    "short": 0.12698412698412698
+  },
+  "candidate_sequence_fingerprint": "437f242e6f96d8c441359321d10c48e317f8281cb5be86a39501843db808285a",
+  "confidence_by_decision": {
+    "APPROVE": {
+      "max": 0.94,
+      "mean": 0.8625,
+      "median": 0.85,
+      "min": 0.82,
+      "n": 8,
+      "p25": 0.835,
+      "p75": 0.88
+    },
+    "REJECT": {
+      "max": 0.99,
+      "mean": 0.8545205479452055,
+      "median": 0.86,
+      "min": 0.7,
+      "n": 73,
+      "p25": 0.78,
+      "p75": 0.93
+    }
+  },
+  "confidence_by_side": {
+    "LONG": {
+      "max": 0.99,
+      "mean": 0.8788888888888888,
+      "median": 0.9,
+      "min": 0.74,
+      "n": 18,
+      "p25": 0.82,
+      "p75": 0.945
+    },
+    "SHORT": {
+      "max": 0.98,
+      "mean": 0.8485714285714285,
+      "median": 0.86,
+      "min": 0.7,
+      "n": 63,
+      "p25": 0.78,
+      "p75": 0.91
+    }
+  },
+  "counts": {
+    "approve": 8,
+    "long": 18,
+    "long_approve": 0,
+    "long_reject": 18,
+    "reject": 73,
+    "short": 63,
+    "short_approve": 8,
+    "short_reject": 55,
+    "total": 81
+  },
+  "fields_not_sent_to_ai": [
+    "sqzmom_color_current",
+    "sqzmom_color_previous",
+    "sqzmom_slope",
+    "setup_quality",
+    "market_location",
+    "technical_space",
+    "risk_flags"
+  ],
+  "identity": {
+    "ai_mode": "live",
+    "bundle_hash": "a3176515d0c61ddb9ea210dca710f014957ee1ef80d813b75826da3d1977b840",
+    "bundle_name": "btcusdt_1d_4h_1h_2026_08",
+    "entry_prompt_version": "strategy2-entry-v1",
+    "exit_prompt_version": "strategy2-exit-v1",
+    "model": "gpt-5.6-terra",
+    "provider": "openai",
+    "reasoning_effort": "low",
+    "run_type": "entry_collection",
+    "schema_version": "1.0.0",
+    "strategy_version": "strategy_2_v1"
+  },
+  "monthly_decisions": {
+    "2025-09": {
+      "APPROVE": 0,
+      "REJECT": 6
+    },
+    "2025-10": {
+      "APPROVE": 0,
+      "REJECT": 8
+    },
+    "2025-11": {
+      "APPROVE": 2,
+      "REJECT": 3
+    },
+    "2025-12": {
+      "APPROVE": 0,
+      "REJECT": 8
+    },
+    "2026-01": {
+      "APPROVE": 1,
+      "REJECT": 8
+    },
+    "2026-02": {
+      "APPROVE": 0,
+      "REJECT": 3
+    },
+    "2026-03": {
+      "APPROVE": 1,
+      "REJECT": 6
+    },
+    "2026-04": {
+      "APPROVE": 0,
+      "REJECT": 9
+    },
+    "2026-05": {
+      "APPROVE": 0,
+      "REJECT": 5
+    },
+    "2026-06": {
+      "APPROVE": 4,
+      "REJECT": 4
+    },
+    "2026-07": {
+      "APPROVE": 0,
+      "REJECT": 8
+    },
+    "2026-08": {
+      "APPROVE": 0,
+      "REJECT": 5
+    }
+  },
+  "pre_outcome_validation": {
+    "forbidden_columns": [],
+    "future_payload_keys": 0,
+    "temporal_causality_errors": 0
+  },
+  "reason_code_vocabulary": {
+    "singleton_codes": 167,
+    "total_assignments": 284,
+    "unique_codes": 209
+  },
+  "run": {
+    "actual_cost_usd": 0.2591919999999999,
+    "cache_hits": 0,
+    "completed_at": "2026-09-12T02:30:21.902700+00:00",
+    "input_tokens": 55496,
+    "live_calls": 81,
+    "output_tokens": 12350,
+    "run_id": "7c6f4b7f-b7fd-457a-8d43-b6b289d94558",
+    "started_at": "2026-09-12T02:26:42.163663+00:00",
+    "status": "COMPLETED"
+  },
+  "schema_consistency": {
+    "duplicate_candidate_ids": 0,
+    "duplicate_input_hashes": 0,
+    "lexical_summary_conflicts": [],
+    "missing_fields": 0,
+    "schema_errors": [],
+    "side_mismatches": 0
+  }
+}
