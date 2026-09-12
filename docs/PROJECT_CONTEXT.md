@@ -61,7 +61,10 @@ Los timestamps se expresan en UTC para compararlos sin ambigüedad.
   locales; todavía no se hizo ninguna llamada pagada.
 - El collector ENTRY recorre esos candidatos como observaciones independientes,
   permanece siempre flat y produce un dataset pre-outcome. Sus decisiones usan
-  el mismo payload/key que el full backtest; el modo live aún no fue ejecutado.
+  el mismo payload/key que el full backtest.
+- El primer collector live quedó congelado con 81 decisiones Terra: 8 APPROVE
+  SHORT y 73 REJECT. La auditoría pre-outcome está en
+  `STRATEGY_2_ENTRY_AI_AUDIT.md`; aún no se abrieron outcomes ni se midió edge.
 
 ## Gestión de riesgo y persistencia — Fase 2
 

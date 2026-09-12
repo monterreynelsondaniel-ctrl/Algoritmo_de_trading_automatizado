@@ -195,3 +195,14 @@
   de decisión permanece compartida para que el full backtest pueda reutilizarla.
 - El dataset del collector contiene sólo información disponible al candidate;
   quedan prohibidos PnL, MFE/MAE y cualquier outcome futuro.
+
+## 2026-09-11 — Auditoría pre-outcome de decisiones ENTRY
+
+- El run Terra produjo 8 APPROVE, todos SHORT, y 73 REJECT. Esta distribución
+  queda registrada como comportamiento del reviewer, no como evidencia de edge.
+- Los APPROVE comparten alineación DMI bajista 1D/4H/1H; los LONG rechazados
+  muestran conflictos 4H/1H y una posible ambigüedad porque el AI sólo recibió
+  el valor SQZMOM, no su color/cambio de reversal.
+- Confidence no separa decisiones y los reason codes libres están fragmentados.
+- No se modifica prompt, schema ni Strategy 2 hasta abrir outcomes en una tarea
+  posterior explícita. Todas las conclusiones actuales son pre-outcome.
