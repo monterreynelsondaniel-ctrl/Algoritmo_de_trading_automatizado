@@ -1,0 +1,87 @@
+{
+  "approval_rates": {
+    "v1_total": 0.09876543209876543,
+    "v2_long": 0.3888888888888889,
+    "v2_short": 0.4126984126984127,
+    "v2_total": 0.4074074074074074
+  },
+  "counts": {
+    "approve_to_approve": 8,
+    "approve_to_reject": 0,
+    "candidates": 81,
+    "long": 18,
+    "long_v2_approve": 7,
+    "reject_to_approve": 25,
+    "short": 63,
+    "short_v2_approve": 26,
+    "v1_approve": 8,
+    "v2_approve": 33
+  },
+  "fingerprints": {
+    "bundle": "a3176515d0c61ddb9ea210dca710f014957ee1ef80d813b75826da3d1977b840",
+    "candidate_sequence": "437f242e6f96d8c441359321d10c48e317f8281cb5be86a39501843db808285a",
+    "v1_input_sequence": "6115bd906cf50d587e72310ac0985e186d59381c6ac15c87464ed1902c282ccd",
+    "v2_input_sequence": "521c0adecf70ffcbdfbde21dda75abb93d09802fa9f5da28d4147c5cb8bd67c2"
+  },
+  "identity": {
+    "v1_run_id": "7c6f4b7f-b7fd-457a-8d43-b6b289d94558",
+    "v2_model": "gpt-5.6-terra",
+    "v2_prompt": "strategy2-entry-v2",
+    "v2_reasoning": "low",
+    "v2_run_id": "f0432b91-9104-4c8c-8e74-0064fa354a41",
+    "v2_schema": "1.1.0",
+    "v2_status": "COMPLETED"
+  },
+  "pre_outcome_validation": {
+    "forbidden_columns": [],
+    "future_payload_keys": 0,
+    "outcomes_loaded": 0
+  },
+  "reason_code_stability": {
+    "opposite_pair_assignments": [
+      {
+        "candidate_id": "d80375dde129b9954e22763a06bd9487b186929b6d300e82c37711d7e8fc0832",
+        "candidate_index": 69,
+        "decision": "REJECT",
+        "pair": [
+          "TREND_ALIGNED",
+          "TREND_CONFLICT"
+        ],
+        "side": "SHORT"
+      },
+      {
+        "candidate_id": "aa6a04e12c9c166bb314d7433a7524ec2fd498cb1f2153fc581e34ee3511969e",
+        "candidate_index": 35,
+        "decision": "APPROVE",
+        "pair": [
+          "DMI_ALIGNED",
+          "DMI_CONFLICT"
+        ],
+        "side": "SHORT"
+      },
+      {
+        "candidate_id": "6bdc5644e5c5e7435fdad084df83d4f2468e7963c405ac26b6be48ff95a03289",
+        "candidate_index": 77,
+        "decision": "APPROVE",
+        "pair": [
+          "ADX_STRONG",
+          "ADX_WEAK"
+        ],
+        "side": "SHORT"
+      }
+    ],
+    "v1_singletons": 167,
+    "v1_unique": 209,
+    "v2_outside_enum": [],
+    "v2_singletons": 0,
+    "v2_unique": 14
+  },
+  "v1_schema_consistency": {
+    "duplicate_candidate_ids": 0,
+    "duplicate_input_hashes": 0,
+    "lexical_summary_conflicts": [],
+    "missing_fields": 0,
+    "schema_errors": [],
+    "side_mismatches": 0
+  }
+}
