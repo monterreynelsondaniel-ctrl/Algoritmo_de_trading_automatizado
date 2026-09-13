@@ -61,6 +61,35 @@ class Strategy2:
         return {name: (None if name not in row or pd.isna(row[name]) else float(row[name]))
                 for name in names}
 
+    @staticmethod
+    def _reversal_context(frame, side, close_time=None):
+        if close_time is not None:
+            positions = [index for index, value in enumerate(frame.close_time)
+                         if value == close_time]
+            if len(positions) != 1 or positions[0] < 1:
+                raise RuntimeError("Cannot reconstruct causal SQZMOM reversal context")
+            current_position = positions[0]
+            window = frame.iloc[current_position - 1:current_position + 1]
+        else:
+            window = frame.iloc[-2:]
+        previous, current = window.iloc[0], window.iloc[1]
+        if side == "LONG":
+            interpretation = "negative momentum remains below zero but is recovering toward zero"
+            meaning = "LONG pullback reversal setup"
+        else:
+            interpretation = "positive momentum remains above zero but is weakening"
+            meaning = "SHORT pullback reversal setup"
+        return {
+            "direction": side,
+            "previous_value": None if pd.isna(previous.sqzmom) else float(previous.sqzmom),
+            "current_value": None if pd.isna(current.sqzmom) else float(current.sqzmom),
+            "previous_color": str(previous.sqzmom_color),
+            "current_color": str(current.sqzmom_color),
+            "transition": f"{previous.sqzmom_color} -> {current.sqzmom_color}",
+            "transition_interpretation": interpretation,
+            "strategy_meaning": meaning,
+        }
+
     def evaluate(self, view):
         if self.state.phase == Strategy2Phase.POSITION_OPEN:
             return None
@@ -104,8 +133,18 @@ class Strategy2:
             "setup_4h": self._numeric_context(setup_frame.iloc[-1]),
             "confirmation_1h": self._numeric_context(confirmation.iloc[-1]),
         }
+        semantic_context = {
+            "candidate_side": self.state.side,
+            "setup_direction": self.state.side,
+            "confirmation_direction": self.state.side,
+            "setup_4h": self._reversal_context(
+                setup_frame, self.state.side, self.state.setup_time,
+            ),
+            "confirmation_1h": self._reversal_context(confirmation, self.state.side),
+        }
         candidate = EntryCandidate(hashlib.sha256(identity.encode()).hexdigest(), self.state.side,
-                                   self.state.setup_time, confirmation_time, context)
+                                   self.state.setup_time, confirmation_time, context,
+                                   semantic_context)
         self.state.candidate, self.state.phase = candidate, Strategy2Phase.CANDIDATE
         return candidate
 

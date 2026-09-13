@@ -7,7 +7,8 @@ from ai_decision.service import DecisionService
 from ai_decision.store import DecisionStore
 from ai_decision.client import OpenAIResponsesClient
 from ai_decision.budget import RunBudget
-from ai_decision.prompts import ENTRY_PROMPT_VERSION, EXIT_PROMPT_VERSION
+from ai_decision.entry_reviews import get_entry_review_contract
+from ai_decision.prompts import EXIT_PROMPT_VERSION
 from ai_decision.runs import AIRunIdentity, AIRunManager
 from ai_decision.schemas import SCHEMA_VERSION
 from backtest.strategy_2_engine import Strategy2Backtester
@@ -24,6 +25,8 @@ def main():
     parser.add_argument("--ai-cache", default=settings.ai_cache_path)
     parser.add_argument("--ai-live", action="store_true",
                         help="Allow new paid OpenAI requests; default is cache-only replay")
+    parser.add_argument("--entry-review-version", choices=("v1", "v2"), default="v1",
+                        help="Versioned ENTRY prompt/payload/schema contract")
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--ai-preflight", action="store_true",
                        help="Offline workload/cost preview; never calls OpenAI")
@@ -33,14 +36,21 @@ def main():
     parser.add_argument("--collection-output-dir",
                         default="research/output/strategy_2_entry_collection")
     args = parser.parse_args()
+    entry_contract = get_entry_review_contract(args.entry_review_version)
     store = DecisionStore(args.ai_cache)
     if args.ai_preflight:
         if args.ai_live:
             parser.error("--ai-preflight cannot be combined with --ai-live")
-        report = create_preflight_report(args.bundle, store, settings).as_dict()
+        report = create_preflight_report(
+            args.bundle, store, settings, args.entry_review_version,
+        ).as_dict()
         report["mode"] = "preflight_offline"
-        report["prompt_versions"] = {"entry": ENTRY_PROMPT_VERSION, "exit": EXIT_PROMPT_VERSION}
-        report["schema_version"] = SCHEMA_VERSION
+        report["prompt_versions"] = {
+            "entry": entry_contract.prompt_version, "exit": EXIT_PROMPT_VERSION,
+        }
+        report["schema_versions"] = {
+            "entry": entry_contract.schema_version, "exit": SCHEMA_VERSION,
+        }
         report["limits"] = {
             "max_run_cost_usd": settings.ai_max_run_cost_usd,
             "max_live_calls_per_run": settings.ai_max_live_calls_per_run,
@@ -58,8 +68,9 @@ def main():
         strategy_version=Strategy2().config.version, bundle_name=args.bundle,
         bundle_hash=bundle_fingerprint(args.bundle), provider=settings.ai_provider,
         model=settings.openai_model, reasoning_effort=settings.openai_reasoning_effort,
-        entry_prompt_version=ENTRY_PROMPT_VERSION, exit_prompt_version=EXIT_PROMPT_VERSION,
-        schema_version=SCHEMA_VERSION, ai_mode=mode,
+        entry_prompt_version=entry_contract.prompt_version,
+        exit_prompt_version=EXIT_PROMPT_VERSION,
+        schema_version=entry_contract.schema_version, ai_mode=mode,
         run_type="entry_collection" if args.ai_entry_collect else "full_backtest",
     )
     run_manager = AIRunManager(store, identity, args.run_id)
@@ -76,7 +87,8 @@ def main():
                          reasoning_effort=settings.openai_reasoning_effort, mode=mode,
                          max_attempts=settings.ai_max_attempts, budget=budget,
                          run_manager=run_manager,
-                         max_output_tokens=settings.ai_max_output_tokens_per_call)
+                         max_output_tokens=settings.ai_max_output_tokens_per_call,
+                         entry_review_version=args.entry_review_version)
     def progress(record, total, counters):
         print(
             f"ENTRY collection {record['candidate_index']}/{total} | {record['side']} | "
@@ -109,8 +121,9 @@ def main():
     result["reproducibility"] = {
         "bundle": args.bundle, "strategy_version": Strategy2().config.version,
         "ai_mode": mode, "model": settings.openai_model,
-        "entry_prompt": ENTRY_PROMPT_VERSION, "exit_prompt": EXIT_PROMPT_VERSION,
-        "schema_version": SCHEMA_VERSION,
+        "entry_prompt": entry_contract.prompt_version, "exit_prompt": EXIT_PROMPT_VERSION,
+        "entry_schema_version": entry_contract.schema_version,
+        "exit_schema_version": SCHEMA_VERSION,
     }
     print(json.dumps(result, indent=2))
 

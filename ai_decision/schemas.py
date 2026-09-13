@@ -4,7 +4,9 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION_V1 = "1.0.0"
+SCHEMA_VERSION_V2 = "1.1.0"
+SCHEMA_VERSION = SCHEMA_VERSION_V1
 
 
 class DecisionSchemaError(ValueError):
@@ -23,11 +25,34 @@ def _strict_object(name, properties, required):
     }
 
 
-ENTRY_SCHEMA = _strict_object("strategy_2_entry_decision", {
+ENTRY_SCHEMA_V1 = _strict_object("strategy_2_entry_decision", {
     "decision": {"type": "string", "enum": ["APPROVE", "REJECT"]},
     "side": {"type": "string", "enum": ["LONG", "SHORT"]},
     "confidence": {"type": "number", "minimum": 0, "maximum": 1},
     "reason_codes": {"type": "array", "items": {"type": "string"}, "maxItems": 8},
+    "summary": {"type": "string", "maxLength": 500},
+}, ["decision", "side", "confidence", "reason_codes", "summary"])
+ENTRY_SCHEMA = ENTRY_SCHEMA_V1
+
+ENTRY_REASON_CODES_V2 = (
+    "TREND_ALIGNED", "TREND_CONFLICT",
+    "SETUP_CONFIRMED", "SETUP_WEAK",
+    "CONFIRMATION_STRONG", "CONFIRMATION_WEAK",
+    "DMI_ALIGNED", "DMI_CONFLICT",
+    "ADX_STRONG", "ADX_WEAK",
+    "EMA_ALIGNED", "EMA_CONFLICT",
+    "MOMENTUM_REVERSAL_CLEAR", "MOMENTUM_REVERSAL_WEAK",
+)
+
+ENTRY_SCHEMA_V2 = _strict_object("strategy_2_entry_decision_v2", {
+    "decision": {"type": "string", "enum": ["APPROVE", "REJECT"]},
+    "side": {"type": "string", "enum": ["LONG", "SHORT"]},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "reason_codes": {
+        "type": "array",
+        "items": {"type": "string", "enum": list(ENTRY_REASON_CODES_V2)},
+        "maxItems": 8,
+    },
     "summary": {"type": "string", "maxLength": 500},
 }, ["decision", "side", "confidence", "reason_codes", "summary"])
 
@@ -66,11 +91,15 @@ class EntryDecision:
     summary: str
 
     @classmethod
-    def parse(cls, payload, expected_side):
+    def parse(cls, payload, expected_side, schema=ENTRY_SCHEMA,
+              allowed_reason_codes=None):
         keys = ("decision", "side", "confidence", "reason_codes", "summary")
-        _validate_common(payload, ENTRY_SCHEMA, keys)
+        _validate_common(payload, schema, keys)
         if payload["side"] not in {"LONG", "SHORT"} or payload["side"] != expected_side:
             raise DecisionSchemaError("AI side does not match deterministic candidate")
+        if allowed_reason_codes is not None and not set(payload["reason_codes"]).issubset(
+                set(allowed_reason_codes)):
+            raise DecisionSchemaError("AI reason_codes are outside the controlled vocabulary")
         return cls(**payload)
 
     def as_dict(self):

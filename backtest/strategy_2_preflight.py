@@ -7,8 +7,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from ai_decision.prompts import ENTRY_SYSTEM_PROMPT, EXIT_SYSTEM_PROMPT
-from ai_decision.schemas import ENTRY_SCHEMA, EXIT_SCHEMA
+from ai_decision.entry_reviews import ENTRY_REVIEW_V1, ENTRY_REVIEW_V2, get_entry_review_contract
+from ai_decision.prompts import EXIT_SYSTEM_PROMPT
+from ai_decision.schemas import EXIT_SCHEMA
 from ai_decision.service import DecisionService
 from ai_decision.budget import token_cost
 from backtest.strategy_2_candidates import enumerate_flat_entry_candidates
@@ -23,6 +24,8 @@ class PreflightReport:
     strategy_version: str
     model: str
     reasoning_effort: str
+    entry_prompt_version: str
+    entry_schema_version: str
     deterministic_candidates: int
     candidates_long: int
     candidates_short: int
@@ -47,6 +50,13 @@ class PreflightReport:
     conservative_upper_bound_usd: float
     cache_entries: int
     first_candidate_hash: str | None
+    candidate_sequence_fingerprint: str
+    v1_input_sequence_fingerprint: str
+    v2_input_sequence_fingerprint: str
+    entry_budget_limit_usd: float
+    entry_call_limit: int
+    budget_covers_reserved_entry_run: bool
+    call_limit_covers_entry_run: bool
 
     def as_dict(self):
         return asdict(self)
@@ -78,20 +88,58 @@ def _representative_exit_payload(entry):
     }
 
 
-def create_preflight_report(bundle_name, store, settings):
+def _sequence_fingerprints(envelopes, service):
+    sequence = [{"candidate_id": item.candidate.candidate_id,
+                 "evaluation_time": item.evaluation_time.isoformat(),
+                 "side": item.candidate.side} for item in envelopes]
+    candidate_fingerprint = hashlib.sha256(
+        json.dumps(sequence, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    inputs = [{**candidate, "input_hash": service.cache_key("ENTRY", item.payload)}
+              for candidate, item in zip(sequence, envelopes)]
+    input_fingerprint = hashlib.sha256(
+        json.dumps(inputs, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    return candidate_fingerprint, input_fingerprint
+
+
+def create_preflight_report(bundle_name, store, settings, entry_review_version="v1"):
     market = FrozenMarketDataStore().load_bundle(bundle_name)
-    prepared, envelopes = enumerate_flat_entry_candidates(market)
+    contract = get_entry_review_contract(entry_review_version)
+    prepared, envelopes = enumerate_flat_entry_candidates(
+        market, entry_prompt_version=contract.prompt_version,
+    )
     candidates = [item.payload for item in envelopes]
     if not candidates:
         raise RuntimeError("Strategy 2 produced no deterministic candidates")
     service = DecisionService(None, store, model=settings.openai_model,
                               provider=settings.ai_provider,
-                              reasoning_effort=settings.openai_reasoning_effort, mode="replay")
+                              reasoning_effort=settings.openai_reasoning_effort, mode="replay",
+                              entry_review_version=entry_review_version)
+    _, v1_envelopes = enumerate_flat_entry_candidates(
+        market, entry_prompt_version=ENTRY_REVIEW_V1.prompt_version,
+    )
+    _, v2_envelopes = enumerate_flat_entry_candidates(
+        market, entry_prompt_version=ENTRY_REVIEW_V2.prompt_version,
+    )
+    v1_service = DecisionService(
+        None, store, model=settings.openai_model, provider=settings.ai_provider,
+        reasoning_effort=settings.openai_reasoning_effort, mode="replay",
+        entry_review_version="v1",
+    )
+    v2_service = DecisionService(
+        None, store, model=settings.openai_model, provider=settings.ai_provider,
+        reasoning_effort=settings.openai_reasoning_effort, mode="replay",
+        entry_review_version="v2",
+    )
+    candidate_fingerprint, _ = _sequence_fingerprints(envelopes, service)
+    _, v1_input_fingerprint = _sequence_fingerprints(v1_envelopes, v1_service)
+    _, v2_input_fingerprint = _sequence_fingerprints(v2_envelopes, v2_service)
     cached = sum(store.get(service.cache_key("ENTRY", payload)) is not None for payload in candidates)
-    entry_tokens = max(service.estimated_input_tokens(ENTRY_SYSTEM_PROMPT, payload, ENTRY_SCHEMA)
+    entry_tokens = max(service.estimated_input_tokens(contract.system_prompt, payload, contract.schema)
                        for payload in candidates)
     entry_tokens_upper = max(
-        service.input_token_upper_bound(ENTRY_SYSTEM_PROMPT, payload, ENTRY_SCHEMA)
+        service.input_token_upper_bound(contract.system_prompt, payload, contract.schema)
         for payload in candidates
     )
     exit_payload = _representative_exit_payload(candidates[0])
@@ -130,6 +178,8 @@ def create_preflight_report(bundle_name, store, settings):
         bundle=bundle_name, bundle_hash=bundle_fingerprint(bundle_name),
         strategy_version=Strategy2().config.version, model=settings.openai_model,
         reasoning_effort=settings.openai_reasoning_effort,
+        entry_prompt_version=contract.prompt_version,
+        entry_schema_version=contract.schema_version,
         deterministic_candidates=len(candidates),
         candidates_long=sum(p["candidate"]["side"] == "LONG" for p in candidates),
         candidates_short=sum(p["candidate"]["side"] == "SHORT" for p in candidates),
@@ -150,4 +200,15 @@ def create_preflight_report(bundle_name, store, settings):
                                       + upper_exit * reserved_exit_cost),
         cache_entries=store.count(),
         first_candidate_hash=service.cache_key("ENTRY", candidates[0]),
+        candidate_sequence_fingerprint=candidate_fingerprint,
+        v1_input_sequence_fingerprint=v1_input_fingerprint,
+        v2_input_sequence_fingerprint=v2_input_fingerprint,
+        entry_budget_limit_usd=settings.ai_max_run_cost_usd,
+        entry_call_limit=settings.ai_max_live_calls_per_run,
+        budget_covers_reserved_entry_run=(
+            live_entries * reserved_entry_cost <= settings.ai_max_run_cost_usd
+        ),
+        call_limit_covers_entry_run=(
+            live_entries <= settings.ai_max_live_calls_per_run
+        ),
     )

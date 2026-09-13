@@ -18,6 +18,7 @@ class EntryCandidate:
     setup_time: pd.Timestamp
     confirmation_time: pd.Timestamp
     context: dict
+    semantic_context: dict = field(default_factory=dict)
 
 
 @dataclass

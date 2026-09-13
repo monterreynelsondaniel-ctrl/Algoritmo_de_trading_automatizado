@@ -2,15 +2,55 @@
 
 from dataclasses import asdict, dataclass
 
+from ai_decision.prompts import ENTRY_PROMPT_VERSION_V1, ENTRY_PROMPT_VERSION_V2
 from ai_decision.service import AIDecisionUnavailableError
 
 
-def build_entry_request(strategy, candidate):
-    return {"strategy_version": strategy.config.version,
-            "candidate": {"id": candidate.candidate_id, "side": candidate.side,
-                          "setup_time": candidate.setup_time.isoformat(),
-                          "confirmation_time": candidate.confirmation_time.isoformat()},
-            "market_context": candidate.context}
+FORBIDDEN_ENTRY_OUTCOME_FIELDS = {
+    "pnl", "future_return", "trade_result", "winner", "loser",
+    "mfe_after_entry", "mae_after_entry", "future_high", "future_low",
+    "exit_price", "exit_time",
+}
+
+
+def assert_entry_request_pre_outcome(value):
+    """Reject outcome-labelled fields before an ENTRY payload reaches AI/cache."""
+    if isinstance(value, dict):
+        for key, nested in value.items():
+            normalized = str(key).lower()
+            if normalized in FORBIDDEN_ENTRY_OUTCOME_FIELDS or normalized.startswith("future_"):
+                raise ValueError(f"Forbidden future/outcome field in ENTRY payload: {key}")
+            assert_entry_request_pre_outcome(nested)
+    elif isinstance(value, list):
+        for nested in value:
+            assert_entry_request_pre_outcome(nested)
+
+
+def build_entry_request(strategy, candidate, entry_prompt_version=ENTRY_PROMPT_VERSION_V1):
+    request = {"strategy_version": strategy.config.version,
+               "candidate": {"id": candidate.candidate_id, "side": candidate.side,
+                             "setup_time": candidate.setup_time.isoformat(),
+                             "confirmation_time": candidate.confirmation_time.isoformat()},
+               "market_context": candidate.context}
+    if entry_prompt_version == ENTRY_PROMPT_VERSION_V1:
+        assert_entry_request_pre_outcome(request)
+        return request
+    if entry_prompt_version != ENTRY_PROMPT_VERSION_V2:
+        raise ValueError(f"Unsupported ENTRY prompt version: {entry_prompt_version}")
+    semantics = getattr(candidate, "semantic_context", None)
+    if not semantics:
+        raise ValueError("ENTRY V2 requires deterministic reversal semantics")
+    request["candidate"].update({
+        "candidate_side": semantics["candidate_side"],
+        "setup_direction": semantics["setup_direction"],
+        "confirmation_direction": semantics["confirmation_direction"],
+    })
+    request["strategy_semantics"] = {
+        "setup_4h": semantics["setup_4h"],
+        "confirmation_1h": semantics["confirmation_1h"],
+    }
+    assert_entry_request_pre_outcome(request)
+    return request
 
 
 @dataclass(frozen=True)
@@ -74,7 +114,9 @@ class Strategy2Backtester:
                 candidate = self.strategy.evaluate(view)
                 if candidate is None:
                     continue
-                request = build_entry_request(self.strategy, candidate)
+                request = build_entry_request(
+                    self.strategy, candidate, self.ai.entry_prompt_version,
+                )
                 try:
                     decision = self.ai.review_entry(request)
                 except AIDecisionUnavailableError as error:

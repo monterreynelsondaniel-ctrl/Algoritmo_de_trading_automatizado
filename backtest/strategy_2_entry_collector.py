@@ -8,8 +8,6 @@ from pathlib import Path
 import re
 
 from ai_decision.budget import AIBudgetExceededError
-from ai_decision.prompts import ENTRY_PROMPT_VERSION
-from ai_decision.schemas import SCHEMA_VERSION
 from ai_decision.service import AIDecisionUnavailableError, AIRequestStateUnknownError
 from backtest.strategy_2_candidates import enumerate_flat_entry_candidates
 
@@ -108,7 +106,8 @@ class Strategy2EntryCollector:
             "ai_status": "MISSING", "confidence": None, "reason_codes": [], "summary": None,
             "provider": self.ai.provider, "model": self.ai.model,
             "reasoning_effort": self.ai.reasoning_effort,
-            "prompt_version": ENTRY_PROMPT_VERSION, "schema_version": SCHEMA_VERSION,
+            "prompt_version": self.ai.entry_prompt_version,
+            "schema_version": self.ai.entry_schema_version,
             "cache_hit": False, "live_call": False, "input_hash": input_hash,
             "run_id": self.run_manager.run_id,
         }
@@ -134,7 +133,9 @@ class Strategy2EntryCollector:
         return str(csv_path), str(json_path)
 
     def run(self, raw_market_data):
-        _, candidates = enumerate_flat_entry_candidates(raw_market_data, self.strategy)
+        _, candidates = enumerate_flat_entry_candidates(
+            raw_market_data, self.strategy, self.ai.entry_prompt_version,
+        )
         keyed = [(item, self.ai.cache_key("ENTRY", item.payload)) for item in candidates]
         sequence = [{"candidate_id": item.candidate.candidate_id,
                      "evaluation_time": item.evaluation_time.isoformat(),

@@ -7,11 +7,10 @@ import time
 from ai_decision.budget import (
     AIBudgetExceededError, conservative_token_upper_bound, estimate_tokens,
 )
+from ai_decision.entry_reviews import get_entry_review_contract
 
-from ai_decision.prompts import (
-    ENTRY_PROMPT_VERSION, ENTRY_SYSTEM_PROMPT, EXIT_PROMPT_VERSION, EXIT_SYSTEM_PROMPT,
-)
-from ai_decision.schemas import ENTRY_SCHEMA, EXIT_SCHEMA, SCHEMA_VERSION, EntryDecision, ExitDecision
+from ai_decision.prompts import EXIT_PROMPT_VERSION, EXIT_SYSTEM_PROMPT
+from ai_decision.schemas import EXIT_SCHEMA, SCHEMA_VERSION, ExitDecision
 from ai_decision.store import PendingAIRequestError
 
 
@@ -26,7 +25,7 @@ class AIRequestStateUnknownError(AIDecisionUnavailableError):
 class DecisionService:
     def __init__(self, client, store, *, model, provider="openai", reasoning_effort="low", mode="replay",
                  max_attempts=2, sleep=time.sleep, budget=None, run_manager=None,
-                 max_output_tokens=300):
+                 max_output_tokens=300, entry_review_version="v1"):
         if mode not in {"live", "replay"}:
             raise ValueError("AI mode must be 'live' or 'replay'")
         self.client, self.store, self.model, self.provider = client, store, model, provider
@@ -34,16 +33,28 @@ class DecisionService:
         self.max_attempts, self.sleep = max_attempts, sleep
         self.budget, self.run_manager = budget, run_manager
         self.max_output_tokens = int(max_output_tokens)
+        self.entry_review = get_entry_review_contract(entry_review_version)
 
-    def _key(self, kind, payload, prompt_version):
+    @property
+    def entry_prompt_version(self):
+        return self.entry_review.prompt_version
+
+    @property
+    def entry_schema_version(self):
+        return self.entry_review.schema_version
+
+    def _key(self, kind, payload, prompt_version, schema_version):
         envelope = {"kind": kind, "payload": payload, "provider": self.provider, "model": self.model,
                     "reasoning": self.reasoning_effort, "prompt": prompt_version,
-                    "schema": SCHEMA_VERSION}
+                    "schema": schema_version}
         return hashlib.sha256(json.dumps(envelope, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
     def cache_key(self, kind, payload):
-        versions = {"ENTRY": ENTRY_PROMPT_VERSION, "EXIT": EXIT_PROMPT_VERSION}
-        return self._key(kind, payload, versions[kind])
+        versions = {
+            "ENTRY": (self.entry_prompt_version, self.entry_schema_version),
+            "EXIT": (EXIT_PROMPT_VERSION, SCHEMA_VERSION),
+        }
+        return self._key(kind, payload, *versions[kind])
 
     @staticmethod
     def estimated_input_tokens(prompt, payload, schema):
@@ -74,8 +85,8 @@ class DecisionService:
             isinstance(status, int) and status >= 500
         )
 
-    def _review(self, kind, payload, prompt, prompt_version, schema, parser):
-        key = self._key(kind, payload, prompt_version)
+    def _review(self, kind, payload, prompt, prompt_version, schema_version, schema, parser):
+        key = self._key(kind, payload, prompt_version, schema_version)
         cached = self.store.get(key)
         if cached:
             response, metadata = cached
@@ -110,7 +121,7 @@ class DecisionService:
                 }
                 metadata = {**provider_metadata, "attempt": attempt, "provider": self.provider,
                             "model": self.model, "prompt_version": prompt_version,
-                            "schema_version": SCHEMA_VERSION}
+                            "schema_version": schema_version}
                 self.store.persist_decision(key, kind, payload, decision.as_dict(), metadata)
                 if self.budget:
                     self.budget.reconcile_usage(input_tokens, provider_metadata.get("usage"))
@@ -141,9 +152,13 @@ class DecisionService:
 
     def review_entry(self, payload):
         side = payload["candidate"]["side"]
-        return self._review("ENTRY", payload, ENTRY_SYSTEM_PROMPT, ENTRY_PROMPT_VERSION,
-                            ENTRY_SCHEMA, lambda value: EntryDecision.parse(value, side))
+        contract = self.entry_review
+        return self._review(
+            "ENTRY", payload, contract.system_prompt, contract.prompt_version,
+            contract.schema_version, contract.schema,
+            lambda value: contract.parse(value, side),
+        )
 
     def review_exit(self, payload):
         return self._review("EXIT", payload, EXIT_SYSTEM_PROMPT, EXIT_PROMPT_VERSION,
-                            EXIT_SCHEMA, ExitDecision.parse)
+                            SCHEMA_VERSION, EXIT_SCHEMA, ExitDecision.parse)
