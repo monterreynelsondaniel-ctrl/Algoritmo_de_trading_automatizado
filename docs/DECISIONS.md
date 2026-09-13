@@ -206,3 +206,13 @@
 - Confidence no separa decisiones y los reason codes libres están fragmentados.
 - No se modifica prompt, schema ni Strategy 2 hasta abrir outcomes en una tarea
   posterior explícita. Todas las conclusiones actuales son pre-outcome.
+
+## 2026-09-13 — Contrato experimental ENTRY V2
+
+- Se conserva V1 byte-semánticamente reproducible y como default.
+- V2 sólo hace explícitas dirección y dinámica/color SQZMOM de las velas que ya
+  generan setup 4H y confirmación 1H; no añade señales, indicadores ni outcomes.
+- V2 usa prompt `strategy2-entry-v2`, schema `1.1.0` y reason codes cerrados, por
+  lo que su identidad de cache no puede reutilizar decisiones V1.
+- El live V2 queda pendiente de autorización y de resolver la reserva máxima
+  `$2.514` frente al límite local `$2.50`; no se incrementa automáticamente.

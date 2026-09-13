@@ -65,6 +65,9 @@ Los timestamps se expresan en UTC para compararlos sin ambigüedad.
 - El primer collector live quedó congelado con 81 decisiones Terra: 8 APPROVE
   SHORT y 73 REJECT. La auditoría pre-outcome está en
   `STRATEGY_2_ENTRY_AI_AUDIT.md`; aún no se abrieron outcomes ni se midió edge.
+- `strategy2-entry-v2` está validado offline como contrato explícito y separado:
+  mismos 81 candidates, semántica SQZMOM causal, schema/reason codes controlados
+  y cache independiente. No ha sido ejecutado live ni evaluado con outcomes.
 
 ## Gestión de riesgo y persistencia — Fase 2
 

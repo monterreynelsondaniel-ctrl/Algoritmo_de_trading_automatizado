@@ -179,6 +179,19 @@ los misses como `MISSING` sin abortar. Con `--ai-live` puede poblar exactamente
 la misma cache ENTRY que usa el backtest, pero nunca abre posiciones, calcula
 PnL ni invoca EXIT REVIEW. Véase `docs/STRATEGY_2_ENTRY_COLLECTION.md`.
 
+El contrato experimental `strategy2-entry-v2` hace explícita la semántica
+SQZMOM ya usada por el setup/confirmación, sin cambiar los 81 candidates. Su
+preflight offline se ejecuta con:
+
+```bash
+.venv/bin/python -m backtest.strategy_2_run \
+  --bundle btcusdt_1d_4h_1h_2026_08 \
+  --ai-preflight --entry-review-version v2
+```
+
+V1 permanece como default y ambas caches están separadas por prompt, schema e
+input. V2 todavía no fue ejecutado live. Véase `docs/STRATEGY_2_ENTRY_V2.md`.
+
 ## Seguridad y Binance Futures
 
 La Fase 1 incorpora configuración fail-closed, logging sanitizado y el adaptador
