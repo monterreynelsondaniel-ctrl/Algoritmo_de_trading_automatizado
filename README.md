@@ -190,7 +190,8 @@ preflight offline se ejecuta con:
 ```
 
 V1 permanece como default y ambas caches están separadas por prompt, schema e
-input. V2 todavía no fue ejecutado live. Véase `docs/STRATEGY_2_ENTRY_V2.md`.
+input. La collection V2 quedó congelada y auditada sin outcomes. Véanse
+`docs/STRATEGY_2_ENTRY_V2.md` y `docs/STRATEGY_2_ENTRY_V2_AUDIT.md`.
 
 ## Seguridad y Binance Futures
 

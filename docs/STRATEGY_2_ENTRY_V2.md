@@ -1,6 +1,6 @@
 # Strategy 2 — experimento ENTRY REVIEW V2
 
-Fecha: 2026-09-13. Estado: implementado y validado offline; **no ejecutado live**.
+Fecha: 2026-09-13. Estado: contrato y collection live completados; outcomes aún cerrados.
 
 ## Motivo pre-outcome
 
@@ -83,6 +83,12 @@ misses live. El coste esperado ENTRY es aproximadamente `$0.455`. La reserva
 conservadora usando el máximo de 2,000 output tokens por llamada es `$2.514`,
 ligeramente superior al límite local `$2.50`; esto debe resolverse explícitamente
 antes de autorizar live. No se cambió el presupuesto ni se hicieron llamadas.
+
+## Estado posterior del collector
+
+La collection autorizada produjo 33 APPROVE y 48 REJECT. Un replay posterior
+confirmó las 81 decisiones desde cache con cero llamadas y cero coste. La
+comparación V1/V2 está documentada en `STRATEGY_2_ENTRY_V2_AUDIT.md`.
 
 ## Limitación
 

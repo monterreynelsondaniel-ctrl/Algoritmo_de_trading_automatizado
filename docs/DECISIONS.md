@@ -216,3 +216,12 @@
   lo que su identidad de cache no puede reutilizar decisiones V1.
 - El live V2 queda pendiente de autorización y de resolver la reserva máxima
   `$2.514` frente al límite local `$2.50`; no se incrementa automáticamente.
+
+## 2026-09-13 — Auditoría comparativa ENTRY V1/V2 pre-outcome
+
+- V2 conserva los 8 APPROVE V1 y añade 25 (7 LONG/18 SHORT), para 33/81.
+- Las tasas V2 LONG/SHORT son 38.89 %/41.27 %; esto describe equilibrio del
+  reviewer, no edge.
+- El vocabulario baja de 209 códigos V1 a 14 controlados y cero singletons,
+  aunque tres respuestas contienen pares opuestos posiblemente multi-timeframe.
+- Se mantienen cerrados todos los outcomes hasta pre-registrar su evaluación.

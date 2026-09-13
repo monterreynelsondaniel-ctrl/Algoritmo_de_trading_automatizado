@@ -36,6 +36,7 @@
 │   ├── STRATEGY_2_ENTRY_COLLECTION.md
 │   ├── STRATEGY_2_ENTRY_AI_AUDIT.md
 │   ├── STRATEGY_2_ENTRY_V2.md
+│   ├── STRATEGY_2_ENTRY_V2_AUDIT.md
 │   ├── PHASE_2_REPORT.md
 │   ├── PROGRESS_REPORT_2026-08-31.md
 │   └── PROJECT_CONTEXT.md
@@ -87,6 +88,7 @@
 │   ├── test_strategy_2_entry_collector.py
 │   ├── test_strategy_2_entry_ai_audit.py
 │   ├── test_strategy_2_entry_v2.py
+│   ├── test_strategy_2_entry_v2_audit.py
 │   └── test_trade_service.py
 ├── .env.example
 ├── run_testnet.py

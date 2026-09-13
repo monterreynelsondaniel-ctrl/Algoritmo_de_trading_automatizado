@@ -67,7 +67,8 @@ Los timestamps se expresan en UTC para compararlos sin ambigüedad.
   `STRATEGY_2_ENTRY_AI_AUDIT.md`; aún no se abrieron outcomes ni se midió edge.
 - `strategy2-entry-v2` está validado offline como contrato explícito y separado:
   mismos 81 candidates, semántica SQZMOM causal, schema/reason codes controlados
-  y cache independiente. No ha sido ejecutado live ni evaluado con outcomes.
+  y cache independiente. Su collector live produjo 33 APPROVE/48 REJECT; replay
+  confirmó 81 hits y la auditoría comparativa sigue estrictamente pre-outcome.
 
 ## Gestión de riesgo y persistencia — Fase 2
 
